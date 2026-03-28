@@ -5,6 +5,8 @@ export function extractTeamFields(formData: FormData) {
   const coords = extractCoordinates(mapsUrl);
   const foundedYear = formData.get("foundedYear") as string;
   const playerCount = formData.get("playerCount") as string;
+  const concelho = ((formData.get("concelho") as string) || "").trim();
+  const distrito = (formData.get("distrito") as string) || null;
 
   return {
     name: ((formData.get("name") as string) || "").trim(),
@@ -15,6 +17,10 @@ export function extractTeamFields(formData: FormData) {
     coordinatorPhone: (formData.get("coordinatorPhone") as string) || null,
     coordinatorAltPhone: (formData.get("coordinatorAltPhone") as string) || null,
     dinnerThirdParty: formData.get("dinnerThirdParty") === "on",
+    // Team types
+    teamTypeF11: formData.get("teamTypeF11") === "on",
+    teamTypeF7: formData.get("teamTypeF7") === "on",
+    teamTypeFutsal: formData.get("teamTypeFutsal") === "on",
     // Kit primary
     kitPrimaryShirt: (formData.get("kitPrimaryShirt") as string) || null,
     kitPrimaryShorts: (formData.get("kitPrimaryShorts") as string) || null,
@@ -27,11 +33,14 @@ export function extractTeamFields(formData: FormData) {
     fieldName: (formData.get("fieldName") as string) || null,
     fieldAddress: (formData.get("fieldAddress") as string) || null,
     fieldType: (formData.get("fieldType") as string) || null,
-    location: ((formData.get("location") as string) || "").trim(),
+    // Location
+    location: distrito ? `${concelho} / ${distrito}` : concelho,
+    concelho,
+    distrito,
     mapsUrl,
     latitude: coords?.latitude?.toString() || null,
     longitude: coords?.longitude?.toString() || null,
-    // New fields
+    // Other fields
     foundedYear: foundedYear ? parseInt(foundedYear, 10) : null,
     playerCount: playerCount ? parseInt(playerCount, 10) : null,
     ageGroup: (formData.get("ageGroup") as string) || null,

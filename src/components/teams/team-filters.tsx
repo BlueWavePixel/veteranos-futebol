@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useTransition } from "react";
 
-export function TeamFilters({ locations }: { locations: string[] }) {
+export function TeamFilters({ distritos }: { distritos: string[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
@@ -31,23 +31,23 @@ export function TeamFilters({ locations }: { locations: string[] }) {
   return (
     <div className="flex flex-col sm:flex-row gap-3 mb-6">
       <Input
-        placeholder="Pesquisar equipa..."
+        placeholder="Pesquisar equipa ou concelho..."
         defaultValue={searchParams.get("q") || ""}
         onChange={(e) => updateFilter("q", e.target.value)}
         className="flex-1"
       />
       <Select
-        defaultValue={searchParams.get("location") || "all"}
-        onValueChange={(value) => updateFilter("location", value ?? "all")}
+        defaultValue={searchParams.get("distrito") || "all"}
+        onValueChange={(value) => updateFilter("distrito", value ?? "all")}
       >
         <SelectTrigger className="w-full sm:w-[220px]">
-          <SelectValue placeholder="Distrito / Concelho" />
+          <SelectValue placeholder="Distrito" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos os locais</SelectItem>
-          {locations.map((loc) => (
-            <SelectItem key={loc} value={loc}>
-              {loc}
+          <SelectItem value="all">Todos os distritos</SelectItem>
+          {distritos.map((d) => (
+            <SelectItem key={d} value={d}>
+              {d}
             </SelectItem>
           ))}
         </SelectContent>

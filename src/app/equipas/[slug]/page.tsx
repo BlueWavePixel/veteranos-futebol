@@ -74,12 +74,25 @@ export default async function TeamPage({ params }: Props) {
         )}
         <div>
           <h1 className="text-3xl font-bold">{team.name}</h1>
-          {team.location && (
-            <p className="text-muted-foreground mt-1">{team.location}</p>
+          {(team.concelho || team.location) && (
+            <p className="text-muted-foreground mt-1">
+              {team.concelho}
+              {team.distrito && ` — ${team.distrito}`}
+              {!team.concelho && team.location}
+            </p>
           )}
           <div className="flex gap-2 mt-3 flex-wrap">
+            {team.teamTypeF11 && (
+              <Badge variant="secondary">Futebol 11</Badge>
+            )}
+            {team.teamTypeF7 && (
+              <Badge variant="secondary">Futebol 7</Badge>
+            )}
+            {team.teamTypeFutsal && (
+              <Badge variant="secondary">Futsal</Badge>
+            )}
             {team.ageGroup && (
-              <Badge variant="secondary">{team.ageGroup}</Badge>
+              <Badge variant="outline">{team.ageGroup}</Badge>
             )}
             {team.foundedYear && (
               <Badge variant="outline">Fundado {team.foundedYear}</Badge>

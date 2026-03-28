@@ -129,6 +129,37 @@ export function TeamForm({
           </div>
         </div>
 
+        {/* Tipo de Equipa */}
+        <div>
+          <Label className="mb-2 block">Tipo de Equipa</Label>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="teamTypeF11"
+                name="teamTypeF11"
+                defaultChecked={defaultValues?.teamTypeF11 || false}
+              />
+              <Label htmlFor="teamTypeF11">Futebol 11</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="teamTypeF7"
+                name="teamTypeF7"
+                defaultChecked={defaultValues?.teamTypeF7 || false}
+              />
+              <Label htmlFor="teamTypeF7">Futebol 7</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="teamTypeFutsal"
+                name="teamTypeFutsal"
+                defaultChecked={defaultValues?.teamTypeFutsal || false}
+              />
+              <Label htmlFor="teamTypeFutsal">Futsal</Label>
+            </div>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3">
           <Switch
             id="dinnerThirdParty"
@@ -313,14 +344,50 @@ export function TeamForm({
           />
         </div>
 
-        <div>
-          <Label htmlFor="location">Concelho / Distrito *</Label>
-          <Input
-            id="location"
-            name="location"
-            required
-            defaultValue={defaultValues?.location || ""}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="concelho">Concelho *</Label>
+            <Input
+              id="concelho"
+              name="concelho"
+              required
+              defaultValue={defaultValues?.concelho || defaultValues?.location || ""}
+            />
+          </div>
+          <div>
+            <Label htmlFor="distrito">Distrito</Label>
+            <Select
+              name="distrito"
+              defaultValue={defaultValues?.distrito || ""}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar distrito" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Aveiro">Aveiro</SelectItem>
+                <SelectItem value="Beja">Beja</SelectItem>
+                <SelectItem value="Braga">Braga</SelectItem>
+                <SelectItem value="Bragança">Bragança</SelectItem>
+                <SelectItem value="Castelo Branco">Castelo Branco</SelectItem>
+                <SelectItem value="Coimbra">Coimbra</SelectItem>
+                <SelectItem value="Évora">Évora</SelectItem>
+                <SelectItem value="Faro">Faro</SelectItem>
+                <SelectItem value="Guarda">Guarda</SelectItem>
+                <SelectItem value="Leiria">Leiria</SelectItem>
+                <SelectItem value="Lisboa">Lisboa</SelectItem>
+                <SelectItem value="Portalegre">Portalegre</SelectItem>
+                <SelectItem value="Porto">Porto</SelectItem>
+                <SelectItem value="Santarém">Santarém</SelectItem>
+                <SelectItem value="Setúbal">Setúbal</SelectItem>
+                <SelectItem value="Viana do Castelo">Viana do Castelo</SelectItem>
+                <SelectItem value="Vila Real">Vila Real</SelectItem>
+                <SelectItem value="Viseu">Viseu</SelectItem>
+                <SelectItem value="Açores">Açores</SelectItem>
+                <SelectItem value="Madeira">Madeira</SelectItem>
+                <SelectItem value="Internacional">Internacional</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div>

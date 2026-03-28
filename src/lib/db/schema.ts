@@ -42,11 +42,17 @@ export const teams = pgTable("teams", {
   kitSecondaryShirt: text("kit_secondary_shirt"),
   kitSecondaryShorts: text("kit_secondary_shorts"),
   kitSecondarySocks: text("kit_secondary_socks"),
+  // Team types (multiple possible)
+  teamTypeF11: boolean("team_type_f11").default(false),
+  teamTypeF7: boolean("team_type_f7").default(false),
+  teamTypeFutsal: boolean("team_type_futsal").default(false),
   // Field info
   fieldName: text("field_name"),
   fieldAddress: text("field_address"),
   fieldType: text("field_type"),
   location: text("location"),
+  concelho: text("concelho"),
+  distrito: text("distrito"),
   mapsUrl: text("maps_url"),
   latitude: decimal("latitude"),
   longitude: decimal("longitude"),
