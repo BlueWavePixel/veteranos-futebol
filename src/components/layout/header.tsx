@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { MobileNav } from "./mobile-nav";
 
 export function Header() {
   return (
@@ -25,6 +26,7 @@ export function Header() {
             <Button size="sm">Aceder</Button>
           </Link>
         </nav>
+        <MobileNav />
       </div>
     </header>
   );
