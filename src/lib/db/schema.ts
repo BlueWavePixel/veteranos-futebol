@@ -7,6 +7,7 @@ import {
   decimal,
   jsonb,
   pgEnum,
+  integer,
 } from "drizzle-orm/pg-core";
 
 export const adminRoleEnum = pgEnum("admin_role", [
@@ -31,14 +32,32 @@ export const teams = pgTable("teams", {
   coordinatorPhone: text("coordinator_phone"),
   coordinatorAltPhone: text("coordinator_alt_phone"),
   dinnerThirdParty: boolean("dinner_third_party"),
+  // Kit details - primary
   kitPrimary: text("kit_primary"),
+  kitPrimaryShirt: text("kit_primary_shirt"),
+  kitPrimaryShorts: text("kit_primary_shorts"),
+  kitPrimarySocks: text("kit_primary_socks"),
+  // Kit details - secondary
   kitSecondary: text("kit_secondary"),
+  kitSecondaryShirt: text("kit_secondary_shirt"),
+  kitSecondaryShorts: text("kit_secondary_shorts"),
+  kitSecondarySocks: text("kit_secondary_socks"),
+  // Field info
   fieldName: text("field_name"),
   fieldAddress: text("field_address"),
+  fieldType: text("field_type"),
   location: text("location"),
   mapsUrl: text("maps_url"),
   latitude: decimal("latitude"),
   longitude: decimal("longitude"),
+  // New optional fields
+  teamPhotoUrl: text("team_photo_url"),
+  foundedYear: integer("founded_year"),
+  playerCount: integer("player_count"),
+  ageGroup: text("age_group"),
+  socialFacebook: text("social_facebook"),
+  socialInstagram: text("social_instagram"),
+  trainingSchedule: text("training_schedule"),
   notes: text("notes"),
   rgpdConsent: boolean("rgpd_consent").notNull().default(false),
   rgpdConsentAt: timestamp("rgpd_consent_at"),

@@ -8,6 +8,13 @@
       "when": 1774723582710,
       "tag": "0000_handy_titania",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774736944639,
+      "tag": "0001_careless_doctor_spectrum",
+      "breakpoints": true
     }
   ]
 }
