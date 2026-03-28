@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getLogoUrl } from "@/lib/logo";
 import type { Team } from "@/lib/db/schema";
 
 type TeamCardProps = {
@@ -24,7 +25,7 @@ export function TeamCard({ team }: TeamCardProps) {
         <CardContent className="p-4 flex gap-4">
           {team.logoUrl ? (
             <img
-              src={team.logoUrl.replace(/\/open\?id=/, "/uc?export=view&id=")}
+              src={getLogoUrl(team.logoUrl)!}
               alt={`Logotipo ${team.name}`}
               className="w-16 h-16 rounded-md object-contain bg-muted"
               loading="lazy"

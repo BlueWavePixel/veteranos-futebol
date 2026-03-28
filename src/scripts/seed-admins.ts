@@ -4,17 +4,17 @@ import { admins } from "@/lib/db/schema";
 async function seed() {
   await db.insert(admins).values([
     {
-      email: "SUPER_ADMIN_EMAIL_HERE", // Replace with actual Google email
+      email: "pmmestanislau@gmail.com",
       name: "Pedro Estanislau",
       role: "super_admin",
     },
     {
-      email: "CARLOS_EMAIL_HERE", // Replace with actual Google email
+      email: "cmshp@hotmail.com",
       name: "Carlos Pereira",
       role: "moderator",
     },
     {
-      email: "FILIPE_EMAIL_HERE", // Replace with actual Google email
+      email: "filipe.fcar@gmail.com",
       name: "Filipe Neves",
       role: "moderator",
     },

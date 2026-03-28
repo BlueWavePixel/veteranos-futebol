@@ -6,6 +6,7 @@ import { getCoordinatorEmail } from "@/lib/auth/session";
 import { TeamContact } from "@/components/teams/team-contact";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getLogoUrl } from "@/lib/logo";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function TeamPage({ params }: Props) {
       <div className="flex items-start gap-6 mb-8">
         {team.logoUrl ? (
           <img
-            src={team.logoUrl.replace(/\/open\?id=/, "/uc?export=view&id=")}
+            src={getLogoUrl(team.logoUrl)!}
             alt={`Logotipo ${team.name}`}
             className="w-24 h-24 rounded-lg object-contain bg-muted"
           />
