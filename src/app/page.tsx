@@ -26,6 +26,8 @@ export default async function HomePage() {
     .from(teams)
     .where(eq(teams.isActive, true));
 
+  const teamsOnMap = allTeams.filter((t) => t.latitude && t.longitude).length;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <section className="text-center mb-8">
@@ -40,6 +42,9 @@ export default async function HomePage() {
 
       <section className="mb-8">
         <MapWrapper teams={allTeams} />
+        <p className="text-sm text-muted-foreground text-center mt-2">
+          {teamsOnMap} de {total} equipas visíveis no mapa
+        </p>
       </section>
 
       <section className="flex flex-col sm:flex-row gap-4 justify-center">
