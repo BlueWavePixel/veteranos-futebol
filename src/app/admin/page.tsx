@@ -1,11 +1,12 @@
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
-import { count, eq } from "drizzle-orm";
+import { count, eq, ilike, or, asc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,13 +16,53 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export default async function AdminPage() {
+export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 25;
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string }>;
+}) {
   await requireAdmin();
 
-  const allTeams = await db.select().from(teams).orderBy(teams.name);
+  const { page: pageParam, q } = await searchParams;
+  const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
+  const offset = (currentPage - 1) * PAGE_SIZE;
 
-  const [{ total }] = await db
-    .select({ total: count() })
+  // Build search conditions
+  const conditions = q
+    ? [
+        or(
+          ilike(teams.name, `%${q}%`),
+          ilike(teams.coordinatorName, `%${q}%`),
+          ilike(teams.coordinatorEmail, `%${q}%`),
+          ilike(teams.location, `%${q}%`)
+        )!,
+      ]
+    : [];
+
+  // Get paginated teams
+  const allTeams = await db
+    .select()
+    .from(teams)
+    .where(conditions.length > 0 ? conditions[0] : undefined)
+    .orderBy(asc(teams.name))
+    .limit(PAGE_SIZE)
+    .offset(offset);
+
+  // Get total count for pagination
+  const [{ totalFiltered }] = await db
+    .select({ totalFiltered: count() })
+    .from(teams)
+    .where(conditions.length > 0 ? conditions[0] : undefined);
+
+  const totalPages = Math.ceil(totalFiltered / PAGE_SIZE);
+
+  // Stats
+  const [{ totalActive }] = await db
+    .select({ totalActive: count() })
     .from(teams)
     .where(eq(teams.isActive, true));
 
@@ -30,6 +71,18 @@ export default async function AdminPage() {
     .from(teams)
     .where(eq(teams.rgpdConsent, false));
 
+  const [{ totalAll }] = await db
+    .select({ totalAll: count() })
+    .from(teams);
+
+  // Build search URL helper
+  function pageUrl(page: number) {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    params.set("page", page.toString());
+    return `/admin?${params.toString()}`;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Painel de Administração</h1>
@@ -37,7 +90,9 @@ export default async function AdminPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold font-mono text-primary">{total}</p>
+            <p className="text-3xl font-bold font-mono text-primary">
+              {totalActive}
+            </p>
             <p className="text-sm text-muted-foreground">Equipas Ativas</p>
           </CardContent>
         </Card>
@@ -51,7 +106,7 @@ export default async function AdminPage() {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold font-mono">{allTeams.length}</p>
+            <p className="text-3xl font-bold font-mono">{totalAll}</p>
             <p className="text-sm text-muted-foreground">
               Total (incl. inativas)
             </p>
@@ -61,9 +116,28 @@ export default async function AdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Todas as Equipas</CardTitle>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle>Todas as Equipas</CardTitle>
+            <form action="/admin" method="GET" className="w-full sm:w-auto">
+              <Input
+                name="q"
+                placeholder="Pesquisar equipa, coordenador, email..."
+                defaultValue={q || ""}
+                className="w-full sm:w-[300px]"
+              />
+            </form>
+          </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
+          {q && (
+            <p className="text-sm text-muted-foreground mb-4">
+              {totalFiltered} resultado{totalFiltered !== 1 ? "s" : ""} para &quot;{q}&quot;
+              {" — "}
+              <Link href="/admin" className="text-primary hover:underline">
+                Limpar pesquisa
+              </Link>
+            </p>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
@@ -120,6 +194,31 @@ export default async function AdminPage() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <p className="text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages} ({totalFiltered} equipas)
+              </p>
+              <div className="flex gap-2">
+                {currentPage > 1 && (
+                  <Link href={pageUrl(currentPage - 1)}>
+                    <Button variant="outline" size="sm">
+                      Anterior
+                    </Button>
+                  </Link>
+                )}
+                {currentPage < totalPages && (
+                  <Link href={pageUrl(currentPage + 1)}>
+                    <Button variant="outline" size="sm">
+                      Seguinte
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
