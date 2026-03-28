@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "./config";
 import { db } from "@/lib/db";
 import { admins } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -17,20 +16,20 @@ export async function requireCoordinator(): Promise<string> {
 }
 
 export async function getAdminSession() {
-  const session = await auth();
-  if (!session?.user?.email) return null;
+  const email = await getCoordinatorEmail();
+  if (!email) return null;
 
   const [admin] = await db
     .select()
     .from(admins)
-    .where(eq(admins.email, session.user.email));
+    .where(eq(admins.email, email));
 
   return admin || null;
 }
 
 export async function requireAdmin() {
   const admin = await getAdminSession();
-  if (!admin) redirect("/admin-login");
+  if (!admin) redirect("/login");
   return admin;
 }
 

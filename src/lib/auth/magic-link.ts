@@ -1,6 +1,6 @@
 import { randomBytes, createHash } from "crypto";
 import { db } from "@/lib/db";
-import { authTokens, teams } from "@/lib/db/schema";
+import { authTokens, teams, admins } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
 const TOKEN_EXPIRY_HOURS = 24;
@@ -18,21 +18,28 @@ export function isTokenExpired(expiresAt: Date): boolean {
 }
 
 export async function createMagicLink(email: string): Promise<string | null> {
-  // Find teams with this email
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Check if email belongs to a coordinator or admin
   const teamList = await db
     .select({ id: teams.id })
     .from(teams)
-    .where(eq(teams.coordinatorEmail, email.toLowerCase().trim()));
+    .where(eq(teams.coordinatorEmail, normalizedEmail));
 
-  if (teamList.length === 0) return null;
+  const adminList = await db
+    .select({ id: admins.id })
+    .from(admins)
+    .where(eq(admins.email, normalizedEmail));
+
+  // Email must belong to at least a coordinator or admin
+  if (teamList.length === 0 && adminList.length === 0) return null;
 
   const token = generateToken();
   const hash = createTokenHash(token);
   const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
 
-  // Store token (email-based, not team-specific — covers multi-team coordinators)
   await db.insert(authTokens).values({
-    email: email.toLowerCase().trim(),
+    email: normalizedEmail,
     tokenHash: hash,
     expiresAt,
   });

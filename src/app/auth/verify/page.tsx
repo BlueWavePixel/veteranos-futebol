@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifyMagicLink } from "@/lib/auth/magic-link";
 import { db } from "@/lib/db";
-import { teams } from "@/lib/db/schema";
+import { teams, admins } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export default async function VerifyPage({
@@ -31,6 +31,16 @@ export default async function VerifyPage({
     maxAge: 30 * 24 * 60 * 60, // 30 days
     path: "/",
   });
+
+  // Check if user is an admin → redirect to admin panel
+  const [admin] = await db
+    .select({ id: admins.id })
+    .from(admins)
+    .where(eq(admins.email, result.email));
+
+  if (admin) {
+    redirect("/admin");
+  }
 
   // Check if any teams need RGPD consent
   const pendingTeams = await db
