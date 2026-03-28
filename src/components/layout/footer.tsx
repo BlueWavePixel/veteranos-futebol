@@ -12,6 +12,12 @@ export function Footer() {
           >
             Política de Privacidade
           </Link>
+          <Link
+            href="/admin-login"
+            className="hover:text-foreground transition-colors"
+          >
+            Administração
+          </Link>
         </nav>
       </div>
     </footer>
