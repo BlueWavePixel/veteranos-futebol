@@ -45,7 +45,7 @@ export async function createMagicLink(email: string): Promise<string | null> {
   });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return `${appUrl}/auth/verify?token=${token}`;
+  return `${appUrl}/api/auth/verify?token=${token}`;
 }
 
 export async function verifyMagicLink(
