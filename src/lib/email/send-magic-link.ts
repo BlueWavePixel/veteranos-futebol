@@ -14,7 +14,7 @@ export async function sendMagicLinkEmail(
   magicLink: string
 ): Promise<boolean> {
   const { error } = await getResend().emails.send({
-    from: "Veteranos Futebol <noreply@resend.dev>",
+    from: "Veteranos Futebol <onboarding@resend.dev>",
     to: email,
     subject: "Aceda à sua equipa — Veteranos Futebol",
     html: `
