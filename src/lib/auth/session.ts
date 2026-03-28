@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authConfig } from "./config";
+import { auth } from "./config";
 import { db } from "@/lib/db";
 import { admins } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -18,7 +17,7 @@ export async function requireCoordinator(): Promise<string> {
 }
 
 export async function getAdminSession() {
-  const session = await getServerSession(authConfig);
+  const session = await auth();
   if (!session?.user?.email) return null;
 
   const [admin] = await db

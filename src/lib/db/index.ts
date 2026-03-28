@@ -15,6 +15,6 @@ export function getDb() {
 // Convenience export for direct usage
 export const db = new Proxy({} as NeonHttpDatabase<typeof schema>, {
   get(_, prop) {
-    return (getDb() as Record<string | symbol, unknown>)[prop];
+    return (getDb() as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
