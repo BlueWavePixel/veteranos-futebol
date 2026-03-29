@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
     const ext = extMap[file.type] || "jpg";
     const filename = `${type || "image"}-${Date.now()}.${ext}`;
 
-    // Upload to Vercel Blob (private store)
+    // Upload to Vercel Blob (public store)
     const blob = await put(filename, file, {
-      access: "private",
+      access: "public",
       contentType: file.type,
       addRandomSuffix: true,
     });
