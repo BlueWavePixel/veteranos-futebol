@@ -69,6 +69,8 @@ export default async function AdminPage({
   if (showDuplicates) {
     searchConditions.push(isNotNull(teams.duplicateFlag));
   }
+  // Always filter active teams by default
+  searchConditions.push(eq(teams.isActive, true));
   const conditions = searchConditions;
 
   // Build where clause
