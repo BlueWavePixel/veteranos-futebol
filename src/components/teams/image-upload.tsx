@@ -82,14 +82,14 @@ export function ImageUpload({
             {uploading ? "A enviar..." : preview ? "Alterar" : "Escolher imagem"}
           </Button>
           <p className="text-xs text-muted-foreground">
-            JPG, PNG ou WebP. Redimensionado automaticamente.
+            JPG, PNG, WebP, GIF ou SVG (máx. 5MB).
           </p>
         </div>
       </div>
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
         onChange={handleFileChange}
         className="hidden"
       />

@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import sharp from "sharp";
 import { getCoordinatorEmail } from "@/lib/auth/session";
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB input max
-const OUTPUT_WIDTH = 400; // Resize to max 400px width
-const OUTPUT_QUALITY = 80; // JPEG quality
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB max
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const type = formData.get("type") as string; // "logo" or "photo"
+    const type = formData.get("type") as string;
 
     if (!file) {
       return NextResponse.json(
@@ -27,33 +24,52 @@ export async function POST(request: NextRequest) {
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { error: "Ficheiro demasiado grande (máximo 10MB)" },
+        { error: "Ficheiro demasiado grande (máximo 5MB)" },
         { status: 400 }
       );
     }
 
-    // Read file and resize with Sharp
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const resized = await sharp(buffer)
-      .resize(OUTPUT_WIDTH, OUTPUT_WIDTH, {
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .jpeg({ quality: OUTPUT_QUALITY })
-      .toBuffer();
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: "Tipo de ficheiro não suportado. Use JPG, PNG, WebP, GIF ou SVG." },
+        { status: 400 }
+      );
+    }
 
-    // Upload to Vercel Blob
-    const filename = `${type || "image"}-${Date.now()}.jpg`;
-    const blob = await put(filename, resized, {
+    // Get file extension from mime type
+    const extMap: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/svg+xml": "svg",
+    };
+    const ext = extMap[file.type] || "jpg";
+    const filename = `${type || "image"}-${Date.now()}.${ext}`;
+
+    // Upload directly to Vercel Blob (no sharp processing)
+    const blob = await put(filename, file, {
       access: "public",
-      contentType: "image/jpeg",
+      contentType: file.type,
     });
 
     return NextResponse.json({ url: blob.url });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "Erro ao processar imagem" },
+      {
+        error:
+          error instanceof Error
+            ? `Erro: ${error.message}`
+            : "Erro ao processar imagem",
+      },
       { status: 500 }
     );
   }
