@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
 import { count, eq, ilike, or, asc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
+import { logAudit } from "@/lib/audit";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,26 @@ export default async function AdminPage({
   searchParams: Promise<{ page?: string; q?: string }>;
 }) {
   await requireAdmin();
+
+  async function deleteTeam(formData: FormData) {
+    "use server";
+    const adminUser = await requireAdmin();
+    const teamId = formData.get("teamId") as string;
+
+    await db
+      .update(teams)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(teams.id, teamId));
+
+    await logAudit({
+      actorType: adminUser.role === "super_admin" ? "super_admin" : "moderator",
+      actorEmail: adminUser.email,
+      action: "team_deleted_by_admin",
+      teamId,
+    });
+
+    redirect("/admin");
+  }
 
   const { page: pageParam, q } = await searchParams;
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
@@ -188,6 +210,17 @@ export default async function AdminPage({
                           Transferir
                         </Button>
                       </Link>
+                      <form action={deleteTeam}>
+                        <input type="hidden" name="teamId" value={team.id} />
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          Apagar
+                        </Button>
+                      </form>
                     </div>
                   </TableCell>
                 </TableRow>
