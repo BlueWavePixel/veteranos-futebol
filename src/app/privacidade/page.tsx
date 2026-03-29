@@ -5,9 +5,9 @@ export default function PrivacidadePage() {
 
       <h2>1. Responsável pelo Tratamento</h2>
       <p>
-        A plataforma Veteranos Futebol é gerida pelos moderadores do grupo de
-        veteranos. Para questões sobre proteção de dados, contacte:{" "}
-        <strong>Pedro Estanislau</strong> (Super Administrador).
+        A plataforma Veteranos Futebol é gerida pelos coordenadores do grupo
+        de veteranos. Para questões sobre proteção de dados, contacte os
+        coordenadores através do grupo de WhatsApp dos Veteranos.
       </p>
 
       <h2>2. Finalidade do Tratamento</h2>
@@ -88,8 +88,8 @@ export default function PrivacidadePage() {
       <h2>10. Contacto</h2>
       <p>
         Para exercer os seus direitos ou para qualquer questão sobre esta
-        política, contacte os moderadores da plataforma através do grupo de
-        WhatsApp dos Veteranos ou diretamente o Super Administrador.
+        política, contacte os coordenadores da plataforma através do grupo de
+        WhatsApp dos Veteranos.
       </p>
     </div>
   );
