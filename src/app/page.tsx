@@ -42,7 +42,10 @@ export default async function HomePage() {
 
       <section className="mb-8 max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-6">
-          Como funciona?
+          Como funciona?{" "}
+          <span className="text-base font-normal text-muted-foreground">
+            (para quem ainda não se registou)
+          </span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
           <div className="space-y-2">
