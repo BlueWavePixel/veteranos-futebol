@@ -18,12 +18,16 @@ type Props = {
   teams: Team[];
   deleteAction: (formData: FormData) => Promise<void>;
   bulkDeleteAction: (formData: FormData) => Promise<void>;
+  reactivateAction?: (formData: FormData) => Promise<void>;
+  isInactiveView?: boolean;
 };
 
 export function AdminTeamTable({
   teams,
   deleteAction,
   bulkDeleteAction,
+  reactivateAction,
+  isInactiveView = false,
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -58,16 +62,29 @@ export function AdminTeamTable({
             >
               Limpar
             </Button>
-            <form action={bulkDeleteAction}>
-              <input
-                type="hidden"
-                name="teamIds"
-                value={Array.from(selected).join(",")}
-              />
-              <Button type="submit" variant="destructive" size="sm">
-                Inativar ({selected.size})
-              </Button>
-            </form>
+            {isInactiveView && reactivateAction ? (
+              <form action={reactivateAction}>
+                <input
+                  type="hidden"
+                  name="teamIds"
+                  value={Array.from(selected).join(",")}
+                />
+                <Button type="submit" size="sm">
+                  Reativar ({selected.size})
+                </Button>
+              </form>
+            ) : (
+              <form action={bulkDeleteAction}>
+                <input
+                  type="hidden"
+                  name="teamIds"
+                  value={Array.from(selected).join(",")}
+                />
+                <Button type="submit" variant="destructive" size="sm">
+                  Inativar ({selected.size})
+                </Button>
+              </form>
+            )}
           </div>
         </div>
       )}

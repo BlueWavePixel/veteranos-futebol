@@ -17,7 +17,7 @@ const PAGE_SIZE = 25;
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string; duplicados?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; duplicados?: string; inativos?: string }>;
 }) {
   await requireAdmin();
 
@@ -65,8 +65,33 @@ export default async function AdminPage({
     redirect("/admin");
   }
 
-  const { page: pageParam, q, duplicados } = await searchParams;
+  async function reactivateTeams(formData: FormData) {
+    "use server";
+    const adminUser = await requireAdmin();
+    const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
+
+    if (ids.length === 0) return;
+
+    await db
+      .update(teams)
+      .set({ isActive: true, updatedAt: new Date() })
+      .where(inArray(teams.id, ids));
+
+    for (const teamId of ids) {
+      await logAudit({
+        actorType: adminUser.role === "super_admin" ? "super_admin" : "moderator",
+        actorEmail: adminUser.email,
+        action: "team_reactivated_by_admin",
+        teamId,
+      });
+    }
+
+    redirect("/admin?inativos=1");
+  }
+
+  const { page: pageParam, q, duplicados, inativos } = await searchParams;
   const showDuplicates = duplicados === "1";
+  const showInactive = inativos === "1";
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
   const offset = (currentPage - 1) * PAGE_SIZE;
 
@@ -85,8 +110,8 @@ export default async function AdminPage({
   if (showDuplicates) {
     searchConditions.push(isNotNull(teams.duplicateFlag));
   }
-  // Always filter active teams by default
-  searchConditions.push(eq(teams.isActive, true));
+  // Filter by active/inactive
+  searchConditions.push(eq(teams.isActive, !showInactive));
   const conditions = searchConditions;
 
   // Build where clause
@@ -191,6 +216,15 @@ export default async function AdminPage({
                   {showDuplicates ? "Todos" : "Duplicados"}
                 </Button>
               </Link>
+              <Link href={showInactive ? "/admin" : "/admin?inativos=1"}>
+                <Button
+                  variant={showInactive ? "default" : "outline"}
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  {showInactive ? "Ativas" : "Inativos"}
+                </Button>
+              </Link>
             </div>
           </div>
         </CardHeader>
@@ -208,6 +242,8 @@ export default async function AdminPage({
             teams={allTeams}
             deleteAction={deleteTeam}
             bulkDeleteAction={bulkDeleteTeams}
+            reactivateAction={reactivateTeams}
+            isInactiveView={showInactive}
           />
 
           {/* Pagination */}
