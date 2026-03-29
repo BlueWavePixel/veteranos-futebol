@@ -3,6 +3,7 @@ import { suggestions, teams } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
+import { notifyCoordinatorReply } from "@/lib/email/send-notification";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,12 @@ export default async function AdminSugestoesPage() {
     const status = formData.get("status") as string;
     const adminReply = (formData.get("adminReply") as string) || null;
 
+    // Get suggestion details before updating (for email)
+    const [suggestion] = await db
+      .select()
+      .from(suggestions)
+      .where(eq(suggestions.id, id));
+
     await db
       .update(suggestions)
       .set({
@@ -55,6 +62,18 @@ export default async function AdminSugestoesPage() {
         updatedAt: new Date(),
       })
       .where(eq(suggestions.id, id));
+
+    // Notify coordinator if there's a reply
+    if (adminReply && suggestion) {
+      await notifyCoordinatorReply({
+        coordinatorEmail: suggestion.authorEmail,
+        coordinatorName: suggestion.authorName,
+        subject: suggestion.subject,
+        originalMessage: suggestion.message,
+        adminReply,
+        status,
+      });
+    }
 
     redirect("/admin/sugestoes");
   }
@@ -73,8 +92,27 @@ export default async function AdminSugestoesPage() {
       {allSuggestions.length === 0 ? (
         <p className="text-muted-foreground">Ainda não há sugestões.</p>
       ) : (
-        <div className="space-y-4">
-          {allSuggestions.map(({ suggestion: s, teamName }) => (
+        <div className="space-y-8">
+          {(["pending", "read", "resolved"] as const).map((status) => {
+            const group = allSuggestions.filter(
+              (s) => s.suggestion.status === status
+            );
+            if (group.length === 0) return null;
+            return (
+              <div key={status}>
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Badge
+                    variant="secondary"
+                    className={STATUS_LABELS[status]?.className || ""}
+                  >
+                    {STATUS_LABELS[status]?.label}
+                  </Badge>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({group.length})
+                  </span>
+                </h2>
+                <div className="space-y-4">
+                  {group.map(({ suggestion: s, teamName }) => (
             <Card key={s.id}>
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-4 mb-3">
@@ -135,7 +173,11 @@ export default async function AdminSugestoesPage() {
                 </form>
               </CardContent>
             </Card>
-          ))}
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
