@@ -48,6 +48,11 @@ export async function createMagicLink(email: string): Promise<string | null> {
   return `${appUrl}/api/auth/verify?token=${token}`;
 }
 
+// Grace period: allow token reuse within 5 minutes of first use
+// This handles email clients (Hotmail/Outlook Safe Links) that
+// pre-fetch links automatically, consuming the token before the user clicks
+const GRACE_PERIOD_MS = 5 * 60 * 1000;
+
 export async function verifyMagicLink(
   token: string
 ): Promise<{ email: string } | null> {
@@ -56,10 +61,17 @@ export async function verifyMagicLink(
   const [record] = await db
     .select()
     .from(authTokens)
-    .where(and(eq(authTokens.tokenHash, hash), isNull(authTokens.usedAt)));
+    .where(eq(authTokens.tokenHash, hash));
 
   if (!record) return null;
   if (isTokenExpired(record.expiresAt)) return null;
+
+  // If already used, allow within grace period
+  if (record.usedAt) {
+    const elapsed = Date.now() - record.usedAt.getTime();
+    if (elapsed > GRACE_PERIOD_MS) return null;
+    return { email: record.email };
+  }
 
   // Mark token as used
   await db
