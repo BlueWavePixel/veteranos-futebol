@@ -21,6 +21,12 @@ export default async function AdminLayout({
           >
             Equipas
           </Link>
+          <Link
+            href="/admin/sugestoes"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Sugestões
+          </Link>
           {admin.role === "super_admin" && (
             <Link
               href="/admin/moderadores"

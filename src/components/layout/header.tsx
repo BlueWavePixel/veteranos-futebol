@@ -17,6 +17,12 @@ export function Header() {
           >
             Equipas
           </Link>
+          <Link
+            href="/sugestoes"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Sugestões
+          </Link>
           <Link href="/registar">
             <Button variant="outline" size="sm">
               Registar Equipa

@@ -118,9 +118,29 @@ export const matches = pgTable("matches", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const suggestionStatusEnum = pgEnum("suggestion_status", [
+  "pending",
+  "read",
+  "resolved",
+]);
+
+export const suggestions = pgTable("suggestions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),
+  authorName: text("author_name").notNull(),
+  authorEmail: text("author_email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: suggestionStatusEnum("status").notNull().default("pending"),
+  adminReply: text("admin_reply"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export type Team = typeof teams.$inferSelect;
 export type NewTeam = typeof teams.$inferInsert;
 export type Admin = typeof admins.$inferSelect;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type Match = typeof matches.$inferSelect;
 export type NewMatch = typeof matches.$inferInsert;
+export type Suggestion = typeof suggestions.$inferSelect;

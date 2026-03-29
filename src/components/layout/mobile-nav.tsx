@@ -33,6 +33,13 @@ export function MobileNav() {
             Equipas
           </Link>
           <Link
+            href="/sugestoes"
+            onClick={() => setOpen(false)}
+            className="text-lg hover:text-primary transition-colors"
+          >
+            Sugestões
+          </Link>
+          <Link
             href="/registar"
             onClick={() => setOpen(false)}
             className="text-lg hover:text-primary transition-colors"
