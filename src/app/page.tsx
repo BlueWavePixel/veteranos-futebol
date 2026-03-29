@@ -57,6 +57,53 @@ export default async function HomePage() {
           <Button size="lg">Registar a Minha Equipa</Button>
         </Link>
       </section>
+
+      <section className="mt-12 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Como funciona?
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          <div className="space-y-2">
+            <div className="text-3xl">📋</div>
+            <h3 className="font-semibold">1. Registe a sua equipa</h3>
+            <p className="text-sm text-muted-foreground">
+              Preencha o formulário com os dados da equipa — nome,
+              localização, equipamentos, campo e contactos do coordenador.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <div className="text-3xl">🔍</div>
+            <h3 className="font-semibold">2. Encontre adversários</h3>
+            <p className="text-sm text-muted-foreground">
+              Pesquise equipas por nome, concelho ou distrito. Consulte o
+              mapa para encontrar clubes perto de si e combine jogos.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <div className="text-3xl">📅</div>
+            <h3 className="font-semibold">3. Organize os seus jogos</h3>
+            <p className="text-sm text-muted-foreground">
+              Cada equipa tem o seu calendário de jogos. Adicione partidas,
+              registe resultados e partilhe o calendário com a equipa.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-lg border bg-muted/50 p-5 text-sm text-muted-foreground space-y-2">
+          <p>
+            <strong className="text-foreground">Veteranos Futebol</strong> é
+            uma plataforma gratuita de contactos para equipas de veteranos em
+            Portugal. O objetivo é simples: facilitar a comunicação entre
+            clubes e ajudar a marcar jogos amigáveis ou torneios.
+          </p>
+          <p>
+            Após o registo, receberá um link de acesso por email para gerir a
+            ficha da sua equipa — atualizar dados, adicionar jogos ao
+            calendário e exportar o calendário para o Google Calendar ou
+            telemóvel.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
