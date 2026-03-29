@@ -133,6 +133,7 @@ export const suggestions = pgTable("suggestions", {
   message: text("message").notNull(),
   status: suggestionStatusEnum("status").notNull().default("pending"),
   adminReply: text("admin_reply"),
+  lastModifiedBy: text("last_modified_by"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

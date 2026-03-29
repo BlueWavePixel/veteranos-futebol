@@ -1,0 +1,1 @@
+ALTER TABLE "suggestions" ADD COLUMN "last_modified_by" text;
