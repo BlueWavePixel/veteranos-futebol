@@ -19,6 +19,17 @@ export function Footer() {
             Administração
           </Link>
         </nav>
+        <p className="text-xs">
+          Desenvolvido e patrocinado por{" "}
+          <a
+            href="https://bluewavepixel.pt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            BlueWavePixel
+          </a>
+        </p>
       </div>
     </footer>
   );
