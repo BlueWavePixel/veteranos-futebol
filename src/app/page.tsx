@@ -84,8 +84,15 @@ export default async function HomePage() {
           <p>
             Após o registo, receberá um link de acesso por email para gerir a
             ficha da sua equipa — atualizar dados, adicionar jogos ao
-            calendário e exportar o calendário para o Google Calendar ou
-            telemóvel.
+            calendário, registar resultados e exportar o calendário para o
+            Google Calendar ou telemóvel.
+          </p>
+          <p>
+            Tem uma ideia ou dúvida? Use a página de{" "}
+            <a href="/sugestoes" className="text-primary hover:underline">
+              Sugestões
+            </a>{" "}
+            para contactar a equipa de moderação.
           </p>
         </div>
       </section>
