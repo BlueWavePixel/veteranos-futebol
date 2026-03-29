@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { teams, matches } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { requireCoordinator } from "@/lib/auth/session";
 import { notFound, redirect } from "next/navigation";
 import { logAudit } from "@/lib/audit";
@@ -34,7 +34,13 @@ export default async function MatchesPage({ params }: Props) {
     .select()
     .from(matches)
     .where(eq(matches.teamId, teamId))
-    .orderBy(desc(matches.matchDate));
+    .orderBy(asc(matches.matchDate));
+
+  const now = new Date();
+  const upcoming = teamMatches.filter((m) => new Date(m.matchDate) >= now);
+  const past = teamMatches
+    .filter((m) => new Date(m.matchDate) < now)
+    .reverse();
 
   async function addMatch(formData: FormData) {
     "use server";
@@ -106,12 +112,29 @@ export default async function MatchesPage({ params }: Props) {
         <MatchForm action={addMatch} />
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold mb-4">
-          Jogos ({teamMatches.length})
-        </h2>
-        <MatchList matches={teamMatches} teamId={teamId} deleteAction={deleteMatch} />
-      </div>
+      {upcoming.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">
+            Próximos jogos ({upcoming.length})
+          </h2>
+          <MatchList matches={upcoming} teamId={teamId} deleteAction={deleteMatch} />
+        </div>
+      )}
+
+      {past.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-4">
+            Jogos anteriores ({past.length})
+          </h2>
+          <MatchList matches={past} teamId={teamId} deleteAction={deleteMatch} />
+        </div>
+      )}
+
+      {teamMatches.length === 0 && (
+        <p className="text-muted-foreground text-sm">
+          Ainda não adicionou nenhum jogo.
+        </p>
+      )}
     </div>
   );
 }
