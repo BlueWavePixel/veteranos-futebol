@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
-import { count, eq, ilike, or, asc } from "drizzle-orm";
+import { count, eq, ilike, or, asc, isNotNull, and } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { logAudit } from "@/lib/audit";
 import { redirect } from "next/navigation";
@@ -25,7 +25,7 @@ const PAGE_SIZE = 25;
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; duplicados?: string }>;
 }) {
   await requireAdmin();
 
@@ -49,27 +49,41 @@ export default async function AdminPage({
     redirect("/admin");
   }
 
-  const { page: pageParam, q } = await searchParams;
+  const { page: pageParam, q, duplicados } = await searchParams;
+  const showDuplicates = duplicados === "1";
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   // Build search conditions
-  const conditions = q
-    ? [
-        or(
-          ilike(teams.name, `%${q}%`),
-          ilike(teams.coordinatorName, `%${q}%`),
-          ilike(teams.coordinatorEmail, `%${q}%`),
-          ilike(teams.location, `%${q}%`)
-        )!,
-      ]
-    : [];
+  const searchConditions = [];
+  if (q) {
+    searchConditions.push(
+      or(
+        ilike(teams.name, `%${q}%`),
+        ilike(teams.coordinatorName, `%${q}%`),
+        ilike(teams.coordinatorEmail, `%${q}%`),
+        ilike(teams.location, `%${q}%`)
+      )!
+    );
+  }
+  if (showDuplicates) {
+    searchConditions.push(isNotNull(teams.duplicateFlag));
+  }
+  const conditions = searchConditions;
+
+  // Build where clause
+  const whereClause =
+    conditions.length > 1
+      ? and(...conditions)
+      : conditions.length === 1
+        ? conditions[0]
+        : undefined;
 
   // Get paginated teams
   const allTeams = await db
     .select()
     .from(teams)
-    .where(conditions.length > 0 ? conditions[0] : undefined)
+    .where(whereClause)
     .orderBy(asc(teams.name))
     .limit(PAGE_SIZE)
     .offset(offset);
@@ -78,7 +92,7 @@ export default async function AdminPage({
   const [{ totalFiltered }] = await db
     .select({ totalFiltered: count() })
     .from(teams)
-    .where(conditions.length > 0 ? conditions[0] : undefined);
+    .where(whereClause);
 
   const totalPages = Math.ceil(totalFiltered / PAGE_SIZE);
 
@@ -101,6 +115,7 @@ export default async function AdminPage({
   function pageUrl(page: number) {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
+    if (showDuplicates) params.set("duplicados", "1");
     params.set("page", page.toString());
     return `/admin?${params.toString()}`;
   }
@@ -140,14 +155,25 @@ export default async function AdminPage({
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle>Todas as Equipas</CardTitle>
-            <form action="/admin" method="GET" className="w-full sm:w-auto">
-              <Input
-                name="q"
-                placeholder="Pesquisar equipa, coordenador, email..."
-                defaultValue={q || ""}
-                className="w-full sm:w-[300px]"
-              />
-            </form>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <form action="/admin" method="GET" className="flex-1 sm:flex-initial">
+                <Input
+                  name="q"
+                  placeholder="Pesquisar equipa, coordenador, email..."
+                  defaultValue={q || ""}
+                  className="w-full sm:w-[300px]"
+                />
+              </form>
+              <Link href={showDuplicates ? "/admin" : "/admin?duplicados=1"}>
+                <Button
+                  variant={showDuplicates ? "default" : "outline"}
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  {showDuplicates ? "Todos" : "Duplicados"}
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
@@ -173,7 +199,19 @@ export default async function AdminPage({
             <TableBody>
               {allTeams.map((team) => (
                 <TableRow key={team.id}>
-                  <TableCell className="font-medium">{team.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {team.name}
+                    {team.duplicateFlag && (
+                      <span
+                        className="block text-[10px] text-orange-400 mt-0.5"
+                        title={team.duplicateFlag}
+                      >
+                        ⚠ {team.duplicateFlag.length > 60
+                          ? team.duplicateFlag.slice(0, 60) + "..."
+                          : team.duplicateFlag}
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div>{team.coordinatorName}</div>
                     <div className="text-xs text-muted-foreground">

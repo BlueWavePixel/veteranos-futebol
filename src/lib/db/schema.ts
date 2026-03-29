@@ -68,6 +68,7 @@ export const teams = pgTable("teams", {
   notes: text("notes"),
   rgpdConsent: boolean("rgpd_consent").notNull().default(false),
   rgpdConsentAt: timestamp("rgpd_consent_at"),
+  duplicateFlag: text("duplicate_flag"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
