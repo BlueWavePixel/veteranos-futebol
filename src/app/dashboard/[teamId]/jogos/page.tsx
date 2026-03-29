@@ -110,7 +110,7 @@ export default async function MatchesPage({ params }: Props) {
         <h2 className="text-lg font-semibold mb-4">
           Jogos ({teamMatches.length})
         </h2>
-        <MatchList matches={teamMatches} deleteAction={deleteMatch} />
+        <MatchList matches={teamMatches} teamId={teamId} deleteAction={deleteMatch} />
       </div>
     </div>
   );

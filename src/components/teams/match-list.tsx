@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Match } from "@/lib/db/schema";
 
 type Props = {
   matches: Match[];
+  teamId: string;
   deleteAction: (formData: FormData) => Promise<void>;
 };
 
@@ -24,7 +26,7 @@ function formatTime(date: Date) {
   return d.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function MatchList({ matches, deleteAction }: Props) {
+export function MatchList({ matches, teamId, deleteAction }: Props) {
   if (matches.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
@@ -79,17 +81,24 @@ export function MatchList({ matches, deleteAction }: Props) {
                 </p>
               )}
             </div>
-            <form action={deleteAction}>
-              <input type="hidden" name="matchId" value={match.id} />
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive text-xs shrink-0"
-              >
-                Apagar
-              </Button>
-            </form>
+            <div className="flex gap-1 shrink-0">
+              <Link href={`/dashboard/${teamId}/jogos/${match.id}`}>
+                <Button variant="ghost" size="sm" className="text-xs">
+                  Editar
+                </Button>
+              </Link>
+              <form action={deleteAction}>
+                <input type="hidden" name="matchId" value={match.id} />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive text-xs"
+                >
+                  Apagar
+                </Button>
+              </form>
+            </div>
           </div>
         );
       })}
