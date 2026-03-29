@@ -57,6 +57,11 @@ export default async function EditTeamPage({ params }: Props) {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Editar Equipa</h1>
         <div className="flex gap-2">
+          <Link href={`/dashboard/${teamId}/jogos`}>
+            <Button variant="outline" size="sm">
+              Jogos
+            </Button>
+          </Link>
           <Link href={`/dashboard/${teamId}/transferir`}>
             <Button variant="outline" size="sm">
               Transferir

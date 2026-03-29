@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
-import { teams } from "@/lib/db/schema";
+import { teams, matches } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { MatchCalendar } from "@/components/teams/match-calendar";
 import { notFound } from "next/navigation";
 import { getCoordinatorEmail } from "@/lib/auth/session";
 import { TeamContact } from "@/components/teams/team-contact";
@@ -44,6 +45,12 @@ export default async function TeamPage({ params }: Props) {
     .where(and(eq(teams.slug, slug), eq(teams.isActive, true)));
 
   if (!team) notFound();
+
+  const teamMatches = await db
+    .select()
+    .from(matches)
+    .where(eq(matches.teamId, team.id))
+    .orderBy(matches.matchDate);
 
   const coordinatorEmail = await getCoordinatorEmail();
   const isAuthenticated = !!coordinatorEmail;
@@ -234,6 +241,9 @@ export default async function TeamPage({ params }: Props) {
           </Card>
         )}
       </div>
+
+      {/* Calendário de Jogos */}
+      <MatchCalendar matches={teamMatches} teamSlug={team.slug} />
 
       {/* Observações */}
       {team.notes && (

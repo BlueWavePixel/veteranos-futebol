@@ -100,7 +100,26 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const matches = pgTable("matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  teamId: uuid("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  opponent: text("opponent").notNull(),
+  matchDate: timestamp("match_date").notNull(),
+  location: text("location"),
+  fieldName: text("field_name"),
+  isHome: boolean("is_home").default(true),
+  goalsFor: integer("goals_for"),
+  goalsAgainst: integer("goals_against"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export type Team = typeof teams.$inferSelect;
 export type NewTeam = typeof teams.$inferInsert;
 export type Admin = typeof admins.$inferSelect;
 export type AuditLogEntry = typeof auditLog.$inferSelect;
+export type Match = typeof matches.$inferSelect;
+export type NewMatch = typeof matches.$inferInsert;
