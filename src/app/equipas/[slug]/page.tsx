@@ -110,16 +110,27 @@ export default async function TeamPage({ params }: Props) {
             {team.playerCount && (
               <Badge variant="outline">{team.playerCount} jogadores</Badge>
             )}
-            {team.updatedAt && (
+            {team.createdAt && (
               <Badge variant="outline">
-                Atualizado em{" "}
-                {new Date(team.updatedAt).toLocaleDateString("pt-PT", {
+                Registado em{" "}
+                {new Date(team.createdAt).toLocaleDateString("pt-PT", {
                   day: "2-digit",
                   month: "short",
                   year: "numeric",
                 })}
               </Badge>
             )}
+            {team.updatedAt &&
+              team.updatedAt.getTime() !== team.createdAt.getTime() && (
+                <Badge variant="outline">
+                  Atualizado em{" "}
+                  {new Date(team.updatedAt).toLocaleDateString("pt-PT", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Badge>
+              )}
             {team.dinnerThirdParty && (
               <Badge className="bg-primary/20 text-primary border-primary/30">
                 Jantar 3&ordf; Parte
