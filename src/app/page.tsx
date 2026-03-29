@@ -40,25 +40,7 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="mb-8">
-        <MapWrapper teams={allTeams} />
-        <p className="text-sm text-muted-foreground text-center mt-2">
-          {teamsOnMap} de {total} equipas visíveis no mapa
-        </p>
-      </section>
-
-      <section className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link href="/equipas">
-          <Button size="lg" variant="outline">
-            Ver Todas as Equipas
-          </Button>
-        </Link>
-        <Link href="/registar">
-          <Button size="lg">Registar a Minha Equipa</Button>
-        </Link>
-      </section>
-
-      <section className="mt-12 max-w-3xl mx-auto">
+      <section className="mb-8 max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-6">
           Como funciona?
         </h2>
@@ -103,6 +85,24 @@ export default async function HomePage() {
             telemóvel.
           </p>
         </div>
+      </section>
+
+      <section className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+        <Link href="/equipas">
+          <Button size="lg" variant="outline">
+            Ver Todas as Equipas
+          </Button>
+        </Link>
+        <Link href="/registar">
+          <Button size="lg">Registar a Minha Equipa</Button>
+        </Link>
+      </section>
+
+      <section className="mb-8">
+        <MapWrapper teams={allTeams} />
+        <p className="text-sm text-muted-foreground text-center mt-2">
+          {teamsOnMap} de {total} equipas visíveis no mapa
+        </p>
       </section>
     </div>
   );
