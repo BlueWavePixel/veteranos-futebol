@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
     const ext = extMap[file.type] || "jpg";
     const filename = `${type || "image"}-${Date.now()}.${ext}`;
 
-    // Upload directly to Vercel Blob (no sharp processing)
+    // Upload to Vercel Blob
     const blob = await put(filename, file, {
-      access: "public",
       contentType: file.type,
+      addRandomSuffix: true,
     });
 
     return NextResponse.json({ url: blob.url });
