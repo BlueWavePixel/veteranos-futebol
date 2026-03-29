@@ -110,22 +110,29 @@ export function TeamForm({
             />
           </div>
           <div>
-            <Label htmlFor="ageGroup">Escalão Etário</Label>
-            <Select
-              name="ageGroup"
-              defaultValue={defaultValues?.ageGroup || ""}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="35+">+35</SelectItem>
-                <SelectItem value="40+">+40</SelectItem>
-                <SelectItem value="45+">+45</SelectItem>
-                <SelectItem value="50+">+50</SelectItem>
-                <SelectItem value="misto">Misto</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label className="mb-2 block">Escalão Etário</Label>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { value: "35+", label: "+35" },
+                { value: "40+", label: "+40" },
+                { value: "45+", label: "+45" },
+                { value: "50+", label: "+50" },
+                { value: "misto", label: "Misto" },
+              ].map((opt) => (
+                <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="ageGroup"
+                    value={opt.value}
+                    defaultChecked={
+                      defaultValues?.ageGroup?.includes(opt.value) ?? false
+                    }
+                    className="size-4 rounded border border-input accent-primary"
+                  />
+                  <span className="text-sm">{opt.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 

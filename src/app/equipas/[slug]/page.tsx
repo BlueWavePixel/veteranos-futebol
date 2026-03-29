@@ -98,9 +98,12 @@ export default async function TeamPage({ params }: Props) {
             {team.teamTypeFutsal && (
               <Badge variant="secondary">Futsal</Badge>
             )}
-            {team.ageGroup && (
-              <Badge variant="outline">{team.ageGroup}</Badge>
-            )}
+            {team.ageGroup &&
+              team.ageGroup.split(", ").map((age) => (
+                <Badge key={age} variant="outline">
+                  {age}
+                </Badge>
+              ))}
             {team.foundedYear && (
               <Badge variant="outline">Fundado {team.foundedYear}</Badge>
             )}

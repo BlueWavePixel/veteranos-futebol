@@ -44,7 +44,7 @@ export function extractTeamFields(formData: FormData) {
     // Other fields
     foundedYear: foundedYear ? parseInt(foundedYear, 10) : null,
     playerCount: playerCount ? parseInt(playerCount, 10) : null,
-    ageGroup: (formData.get("ageGroup") as string) || null,
+    ageGroup: formData.getAll("ageGroup").filter(Boolean).join(", ") || null,
     socialFacebook: (formData.get("socialFacebook") as string) || null,
     socialInstagram: (formData.get("socialInstagram") as string) || null,
     trainingSchedule: (formData.get("trainingSchedule") as string) || null,
