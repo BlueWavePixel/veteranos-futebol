@@ -1,22 +1,14 @@
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
-import { count, eq, ilike, or, asc, isNotNull, and } from "drizzle-orm";
+import { count, eq, ilike, or, asc, isNotNull, and, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { logAudit } from "@/lib/audit";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { AdminTeamTable } from "@/components/admin/admin-team-table";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +37,30 @@ export default async function AdminPage({
       action: "team_deleted_by_admin",
       teamId,
     });
+
+    redirect("/admin");
+  }
+
+  async function bulkDeleteTeams(formData: FormData) {
+    "use server";
+    const adminUser = await requireAdmin();
+    const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
+
+    if (ids.length === 0) return;
+
+    await db
+      .update(teams)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(inArray(teams.id, ids));
+
+    for (const teamId of ids) {
+      await logAudit({
+        actorType: adminUser.role === "super_admin" ? "super_admin" : "moderator",
+        actorEmail: adminUser.email,
+        action: "team_deleted_by_admin",
+        teamId,
+      });
+    }
 
     redirect("/admin");
   }
@@ -188,85 +204,11 @@ export default async function AdminPage({
               </Link>
             </p>
           )}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Equipa</TableHead>
-                <TableHead>Coordenador</TableHead>
-                <TableHead>Localização</TableHead>
-                <TableHead>RGPD</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allTeams.map((team) => (
-                <TableRow key={team.id}>
-                  <TableCell className="font-medium">
-                    {team.name}
-                    {team.duplicateFlag && (
-                      <span
-                        className="block text-[10px] text-orange-400 mt-0.5"
-                        title={team.duplicateFlag}
-                      >
-                        ⚠ {team.duplicateFlag.length > 60
-                          ? team.duplicateFlag.slice(0, 60) + "..."
-                          : team.duplicateFlag}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div>{team.coordinatorName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {team.coordinatorEmail}
-                    </div>
-                  </TableCell>
-                  <TableCell>{team.location}</TableCell>
-                  <TableCell>
-                    {team.rgpdConsent ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-primary/20 text-primary"
-                      >
-                        OK
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="secondary"
-                        className="bg-yellow-500/20 text-yellow-400"
-                      >
-                        Pendente
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Link href={`/admin/equipas/${team.id}`}>
-                        <Button variant="ghost" size="sm">
-                          Editar
-                        </Button>
-                      </Link>
-                      <Link href={`/admin/transferir/${team.id}`}>
-                        <Button variant="ghost" size="sm">
-                          Transferir
-                        </Button>
-                      </Link>
-                      <form action={deleteTeam}>
-                        <input type="hidden" name="teamId" value={team.id} />
-                        <Button
-                          type="submit"
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                        >
-                          Apagar
-                        </Button>
-                      </form>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdminTeamTable
+            teams={allTeams}
+            deleteAction={deleteTeam}
+            bulkDeleteAction={bulkDeleteTeams}
+          />
 
           {/* Pagination */}
           {totalPages > 1 && (
