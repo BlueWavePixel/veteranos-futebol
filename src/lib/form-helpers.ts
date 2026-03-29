@@ -34,7 +34,8 @@ export function extractTeamFields(formData: FormData) {
     fieldAddress: (formData.get("fieldAddress") as string) || null,
     fieldType: (formData.get("fieldType") as string) || null,
     // Location
-    location: distrito ? `${concelho} / ${distrito}` : concelho,
+    localidade: (formData.get("localidade") as string) || null,
+    location: [concelho, distrito].filter(Boolean).join(" / "),
     concelho,
     distrito,
     mapsUrl,

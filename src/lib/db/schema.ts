@@ -51,6 +51,7 @@ export const teams = pgTable("teams", {
   fieldAddress: text("field_address"),
   fieldType: text("field_type"),
   location: text("location"),
+  localidade: text("localidade"),
   concelho: text("concelho"),
   distrito: text("distrito"),
   mapsUrl: text("maps_url"),

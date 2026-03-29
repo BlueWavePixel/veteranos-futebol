@@ -7,7 +7,7 @@ export function Header() {
     <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="text-primary">&#9917;</span>
+          <img src="/images/logo.png" alt="Logo" className="h-8" />
           Veteranos Futebol
         </Link>
         <nav className="hidden md:flex items-center gap-4">

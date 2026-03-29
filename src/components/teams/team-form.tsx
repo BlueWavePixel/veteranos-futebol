@@ -344,6 +344,16 @@ export function TeamForm({
           />
         </div>
 
+        <div>
+          <Label htmlFor="localidade">Localidade / Freguesia</Label>
+          <Input
+            id="localidade"
+            name="localidade"
+            placeholder="Ex: Arrentela, Brejos de Azeitão..."
+            defaultValue={defaultValues?.localidade || ""}
+          />
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="concelho">Concelho *</Label>

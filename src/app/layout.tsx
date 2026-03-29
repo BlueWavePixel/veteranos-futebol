@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "Veteranos Futebol — Contactos de Equipas",
   description:
     "Plataforma de contactos de equipas de veteranos de futebol. Encontre equipas, marque jogos.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
