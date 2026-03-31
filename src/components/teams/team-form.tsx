@@ -412,9 +412,13 @@ export function TeamForm({
           <Input
             id="mapsUrl"
             name="mapsUrl"
-            type="url"
+            type="text"
+            placeholder="https://maps.google.com/..."
             defaultValue={defaultValues?.mapsUrl || ""}
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Cole o link completo do Google Maps (não apenas as coordenadas)
+          </p>
         </div>
       </fieldset>
 

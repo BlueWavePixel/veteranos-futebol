@@ -1,8 +1,13 @@
 import { extractCoordinates } from "@/lib/geo";
 
 export function extractTeamFields(formData: FormData) {
-  const mapsUrl = (formData.get("mapsUrl") as string) || null;
+  let mapsUrl = (formData.get("mapsUrl") as string)?.trim() || null;
   const coords = extractCoordinates(mapsUrl);
+
+  // If user entered raw coordinates, convert to a Google Maps link
+  if (mapsUrl && coords && /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/.test(mapsUrl)) {
+    mapsUrl = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
+  }
   const foundedYear = formData.get("foundedYear") as string;
   const playerCount = formData.get("playerCount") as string;
   const concelho = ((formData.get("concelho") as string) || "").trim();

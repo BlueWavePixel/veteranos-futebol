@@ -23,6 +23,16 @@ export function extractCoordinates(
     };
   }
 
+  // Try raw coordinates: "38.821488,-9.292596" or "38.821488, -9.292596"
+  const rawMatch = url.trim().match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+  if (rawMatch) {
+    const lat = parseFloat(rawMatch[1]);
+    const lng = parseFloat(rawMatch[2]);
+    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      return { latitude: lat, longitude: lng };
+    }
+  }
+
   // Short URLs (goo.gl/maps/*) need HTTP resolution — cannot parse statically
   return null;
 }
