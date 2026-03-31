@@ -3,6 +3,7 @@ import { teams } from "@/lib/db/schema";
 import { count, eq, ilike, or, asc, isNotNull, and, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { logAudit } from "@/lib/audit";
+import { recalculateDuplicateFlags } from "@/lib/recalculate-flags";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +39,7 @@ export default async function AdminPage({
       teamId,
     });
 
+    await recalculateDuplicateFlags();
     redirect("/admin");
   }
 
@@ -62,6 +64,7 @@ export default async function AdminPage({
       });
     }
 
+    await recalculateDuplicateFlags();
     redirect("/admin");
   }
 
@@ -86,6 +89,7 @@ export default async function AdminPage({
       });
     }
 
+    await recalculateDuplicateFlags();
     redirect("/admin?inativos=1");
   }
 

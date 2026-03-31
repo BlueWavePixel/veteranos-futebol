@@ -1,18 +1,16 @@
-import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { db } from "@/lib/db";
+import { teams } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
 
-async function main() {
-  const db = drizzle(neon(process.env.DATABASE_URL!));
-
-  // Limpar flags anteriores
+/**
+ * Recalcula os flags de duplicados considerando apenas equipas ativas.
+ * Deve ser chamado após desativar/reativar equipas.
+ */
+export async function recalculateDuplicateFlags() {
+  // Limpar todos os flags
   await db.execute(sql`UPDATE teams SET duplicate_flag = NULL`);
-  console.log("Flags anteriores limpas.\n");
 
-  let flagged = 0;
-
-  // 1. Mesmo email com múltiplas equipas (só ativas)
+  // 1. Mesmo email (só ativas)
   const byEmail = await db.execute(sql`
     SELECT coordinator_email, ARRAY_AGG(id) as ids
     FROM teams
@@ -29,9 +27,8 @@ async function main() {
       `);
     }
   }
-  console.log(`Marcados por email: ${byEmail.rows.length} grupos`);
 
-  // 2. Mesmo telefone com múltiplas equipas (só ativas)
+  // 2. Mesmo telefone (só ativas)
   const byPhone = await db.execute(sql`
     SELECT coordinator_phone, ARRAY_AGG(id) as ids
     FROM teams
@@ -48,9 +45,8 @@ async function main() {
       `);
     }
   }
-  console.log(`Marcados por telefone: ${byPhone.rows.length} grupos`);
 
-  // 3. Mesmo nome (case-insensitive, só ativas)
+  // 3. Mesmo nome (só ativas)
   const byName = await db.execute(sql`
     SELECT LOWER(TRIM(name)) as norm, ARRAY_AGG(id) as ids
     FROM teams
@@ -67,11 +63,10 @@ async function main() {
       `);
     }
   }
-  console.log(`Marcados por nome: ${byName.rows.length} grupos`);
 
   // 4. Nome da equipa igual ao nome do coordenador (só ativas)
   const personalNames = await db.execute(sql`
-    SELECT id, name, coordinator_name FROM teams
+    SELECT id FROM teams
     WHERE is_active = true
       AND coordinator_name IS NOT NULL
       AND TRIM(coordinator_name) != ''
@@ -84,17 +79,4 @@ async function main() {
       WHERE id = ${row.id}::uuid AND (duplicate_flag IS NULL OR duplicate_flag NOT LIKE '%nome coordenador%')
     `);
   }
-  console.log(`Nome equipa = nome coordenador: ${personalNames.rows.length}`);
-  for (const row of personalNames.rows as any[]) {
-    console.log(`  - "${row.name}" (coord: ${row.coordinator_name})`);
-  }
-
-  // Contar total de flagged
-  const [{ total }] = (await db.execute(sql`
-    SELECT COUNT(*) as total FROM teams WHERE duplicate_flag IS NOT NULL
-  `)).rows as any[];
-
-  console.log(`\n=== Total de equipas marcadas: ${total} ===`);
 }
-
-main().catch(console.error);
