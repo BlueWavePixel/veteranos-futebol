@@ -16,6 +16,11 @@ export default async function DashboardPage() {
     .from(teams)
     .where(and(eq(teams.coordinatorEmail, email), eq(teams.isActive, true)));
 
+  const inactiveTeams = await db
+    .select({ id: teams.id, name: teams.name })
+    .from(teams)
+    .where(and(eq(teams.coordinatorEmail, email), eq(teams.isActive, false)));
+
   // Contar jogos futuros por equipa
   const now = new Date();
   const matchCounts: Record<string, number> = {};
@@ -71,8 +76,24 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
 
+      {/* Aviso equipas desativadas */}
+      {inactiveTeams.length > 0 && (
+        <Card className="mb-6 border-orange-500/50 bg-orange-500/10">
+          <CardContent className="p-5">
+            <p className="text-sm font-medium text-orange-400 mb-1">
+              ⚠ Equipa{inactiveTeams.length > 1 ? "s" : ""} desativada{inactiveTeams.length > 1 ? "s" : ""}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              A sua equipa <strong>{inactiveTeams.map((t) => t.name).join(", ")}</strong> foi
+              desativada, provavelmente por ter mais que um contacto registado.
+              Contacte o administrador para resolver a situação.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Equipas */}
-      {myTeams.length === 0 ? (
+      {myTeams.length === 0 && inactiveTeams.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-muted-foreground mb-4">
@@ -83,7 +104,7 @@ export default async function DashboardPage() {
             </Link>
           </CardContent>
         </Card>
-      ) : (
+      ) : myTeams.length === 0 ? null : (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">
             {myTeams.length === 1 ? "A minha equipa" : "As minhas equipas"}
