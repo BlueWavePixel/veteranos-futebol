@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { getLocale } from "@/lib/i18n/get-locale";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,20 +25,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="pt"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      lang={locale === "es" ? "es" : "pt"}
+      translate="no"
+      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased notranslate`}
     >
+      <head>
+        <meta name="google" content="notranslate" />
+      </head>
       <body className="min-h-full flex flex-col">
         <Header />
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Footer locale={locale} />
       </body>
     </html>
   );
