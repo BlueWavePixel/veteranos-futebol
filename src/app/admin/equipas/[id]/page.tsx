@@ -36,7 +36,7 @@ export default async function AdminEditTeamPage({ params }: Props) {
   ): Promise<{ error?: string; success?: boolean }> {
     "use server";
 
-    const fields = extractTeamFields(formData);
+    const fields = await extractTeamFields(formData);
     const coordinatorEmail = (
       (formData.get("coordinatorEmail") as string) || ""
     )

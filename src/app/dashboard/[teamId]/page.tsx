@@ -35,7 +35,7 @@ export default async function EditTeamPage({ params }: Props) {
   ): Promise<{ error?: string; success?: boolean }> {
     "use server";
 
-    const fields = extractTeamFields(formData);
+    const fields = await extractTeamFields(formData);
 
     await db
       .update(teams)

@@ -1,8 +1,8 @@
 import { extractCoordinates } from "@/lib/geo";
 
-export function extractTeamFields(formData: FormData) {
+export async function extractTeamFields(formData: FormData) {
   let mapsUrl = (formData.get("mapsUrl") as string)?.trim() || null;
-  const coords = extractCoordinates(mapsUrl);
+  const coords = await extractCoordinates(mapsUrl);
 
   // If user entered raw coordinates, convert to a Google Maps link
   if (mapsUrl && coords && /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/.test(mapsUrl)) {

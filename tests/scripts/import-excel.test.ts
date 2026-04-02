@@ -16,7 +16,7 @@ describe("cleanPhone", () => {
 });
 
 describe("parseExcelRow", () => {
-  it("maps Excel columns to team data", () => {
+  it("maps Excel columns to team data", async () => {
     const row = [
       "2022-12-08 14:40:04",
       "test@gmail.com",
@@ -35,7 +35,7 @@ describe("parseExcelRow", () => {
       "https://www.google.com/maps/place/Test/@38.7,-9.1,15z",
       "Notes here",
     ];
-    const result = parseExcelRow(row);
+    const result = await parseExcelRow(row);
     expect(result.name).toBe("Test Team FC");
     expect(result.coordinatorEmail).toBe("test@gmail.com");
     expect(result.coordinatorPhone).toBe("934151187");

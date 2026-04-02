@@ -8,9 +8,9 @@ export function cleanPhone(value: unknown): string | null {
   return str || null;
 }
 
-export function parseExcelRow(row: unknown[]) {
+export async function parseExcelRow(row: unknown[]) {
   const mapsUrl = row[14] as string | null;
-  const coords = extractCoordinates(mapsUrl);
+  const coords = await extractCoordinates(mapsUrl);
 
   return {
     name: (row[3] as string)?.trim() || "",
@@ -33,23 +33,25 @@ export function parseExcelRow(row: unknown[]) {
   };
 }
 
-export function parseExcelFile(filePath: string) {
+export async function parseExcelFile(filePath: string) {
   const workbook = XLSX.readFile(filePath);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
 
   const dataRows = rows.slice(1).filter((row) => row[3]);
 
-  const teamsData = dataRows.map((row) => {
-    const parsed = parseExcelRow(row);
-    const slug = generateSlug(parsed.name);
-    return {
-      ...parsed,
-      slug,
-      rgpdConsent: false,
-      isActive: true,
-    };
-  });
+  const teamsData = await Promise.all(
+    dataRows.map(async (row) => {
+      const parsed = await parseExcelRow(row);
+      const slug = generateSlug(parsed.name);
+      return {
+        ...parsed,
+        slug,
+        rgpdConsent: false,
+        isActive: true,
+      };
+    })
+  );
 
   // Handle duplicate slugs
   const slugCounts = new Map<string, number>();

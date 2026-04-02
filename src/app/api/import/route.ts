@@ -19,7 +19,7 @@ export async function POST() {
     "Contactos dos Clubes Veteranos (Respostas) (1).xlsx"
   );
 
-  const teamsData = parseExcelFile(filePath);
+  const teamsData = await parseExcelFile(filePath);
 
   let imported = 0;
   for (const teamData of teamsData) {
