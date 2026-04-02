@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "./mobile-nav";
+import { t, type Locale } from "@/lib/i18n/translations";
 
-export function Header() {
+export function Header({ locale }: { locale: Locale }) {
   return (
     <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
@@ -15,24 +16,24 @@ export function Header() {
             href="/equipas"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            Equipas
+            {t("common", "teams", locale)}
           </Link>
           <Link
             href="/sugestoes"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            Sugestões
+            {t("common", "suggestions", locale)}
           </Link>
           <Link href="/registar">
             <Button variant="outline" size="sm">
-              Registar Equipa
+              {t("header", "registerTeam", locale)}
             </Button>
           </Link>
           <Link href="/login">
-            <Button size="sm">Aceder</Button>
+            <Button size="sm">{t("header", "access", locale)}</Button>
           </Link>
         </nav>
-        <MobileNav />
+        <MobileNav locale={locale} />
       </div>
     </header>
   );

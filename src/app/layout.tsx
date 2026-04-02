@@ -42,7 +42,7 @@ export default async function RootLayout({
         <meta name="google" content="notranslate" />
       </head>
       <body className="min-h-full flex flex-col">
-        <Header />
+        <Header locale={locale} />
         <main className="flex-1">{children}</main>
         <Footer locale={locale} />
       </body>

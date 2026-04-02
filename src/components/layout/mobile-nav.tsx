@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { t, type Locale } from "@/lib/i18n/translations";
 
-export function MobileNav() {
+export function MobileNav({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -30,28 +31,28 @@ export function MobileNav() {
             onClick={() => setOpen(false)}
             className="text-lg hover:text-primary transition-colors"
           >
-            Equipas
+            {t("common", "teams", locale)}
           </Link>
           <Link
             href="/sugestoes"
             onClick={() => setOpen(false)}
             className="text-lg hover:text-primary transition-colors"
           >
-            Sugestões
+            {t("common", "suggestions", locale)}
           </Link>
           <Link
             href="/registar"
             onClick={() => setOpen(false)}
             className="text-lg hover:text-primary transition-colors"
           >
-            Registar Equipa
+            {t("header", "registerTeam", locale)}
           </Link>
           <Link
             href="/login"
             onClick={() => setOpen(false)}
             className="text-lg hover:text-primary transition-colors"
           >
-            Aceder
+            {t("header", "access", locale)}
           </Link>
         </nav>
       </SheetContent>
