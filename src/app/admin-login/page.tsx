@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/components/auth/login-form";
+import { getLocale } from "@/lib/i18n/get-locale";
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const locale = await getLocale();
   return (
     <div className="container mx-auto px-4 py-16 max-w-md">
       <Card>
@@ -13,7 +15,7 @@ export default function AdminLoginPage() {
             Acesso restrito a moderadores. Insira o seu email autorizado para
             receber o link de acesso.
           </p>
-          <LoginForm />
+          <LoginForm locale={locale} />
         </CardContent>
       </Card>
     </div>
