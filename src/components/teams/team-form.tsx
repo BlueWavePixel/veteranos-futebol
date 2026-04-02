@@ -417,7 +417,7 @@ export function TeamForm({
             defaultValue={defaultValues?.mapsUrl || ""}
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Cole o link completo do Google Maps (não apenas as coordenadas)
+            Cole o link do Google Maps — aceita links completos, links curtos e coordenadas
           </p>
         </div>
       </fieldset>
