@@ -10,6 +10,8 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { t } from "@/lib/i18n/translations";
+import type { Locale } from "@/lib/i18n/translations";
+import { cookies } from "next/headers";
 
 async function registerTeam(
   formData: FormData
@@ -49,9 +51,16 @@ async function registerTeam(
     rgpdConsentAt: new Date(),
   });
 
+  const cookieStore = await cookies();
+  const localeCookieValue = cookieStore.get("locale")?.value;
+  const emailLocale: Locale =
+    localeCookieValue === "es" || localeCookieValue === "br"
+      ? (localeCookieValue as Locale)
+      : "pt";
+
   const magicLink = await createMagicLink(coordinatorEmail);
   if (magicLink) {
-    await sendMagicLinkEmail(coordinatorEmail, magicLink);
+    await sendMagicLinkEmail(coordinatorEmail, magicLink, emailLocale);
   }
 
   redirect("/registar/sucesso");
