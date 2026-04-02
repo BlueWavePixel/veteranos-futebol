@@ -7,6 +7,9 @@ import { createMagicLink } from "@/lib/auth/magic-link";
 import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
+import Link from "next/link";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { t } from "@/lib/i18n/translations";
 
 async function registerTeam(
   formData: FormData
@@ -54,16 +57,22 @@ async function registerTeam(
   redirect("/registar/sucesso");
 }
 
-export default function RegistarPage() {
+export default async function RegistarPage() {
+  const locale = await getLocale();
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-2">Registar Equipa</h1>
+      <h1 className="text-3xl font-bold mb-2">{t("register", "title", locale)}</h1>
       <p className="text-muted-foreground mb-8">
-        Preencha os dados da sua equipa de veteranos. Após o registo, receberá
-        um email com um link para aceder e editar os seus dados a qualquer
-        momento.
+        {t("register", "subtitle", locale)}
       </p>
-      <TeamForm action={registerTeam} />
+      <div className="rounded-lg border bg-muted/50 p-4 mb-8 text-sm text-muted-foreground">
+        {t("register", "alreadyRegistered", locale)}{" "}
+        <Link href="/login" className="text-primary hover:underline">
+          {t("register", "goToLogin", locale)}
+        </Link>
+      </div>
+      <TeamForm action={registerTeam} submitLabel={t("register", "submitButton", locale)} />
     </div>
   );
 }
