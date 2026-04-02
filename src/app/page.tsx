@@ -4,10 +4,14 @@ import { eq, count } from "drizzle-orm";
 import { MapWrapper } from "@/components/map/map-wrapper";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { t, tFn } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const locale = await getLocale();
+
   const allTeams = await db
     .select({
       id: teams.id,
@@ -26,73 +30,74 @@ export default async function HomePage() {
     .from(teams)
     .where(eq(teams.isActive, true));
 
-  const teamsOnMap = allTeams.filter((t) => t.latitude && t.longitude).length;
+  const teamsOnMap = allTeams.filter((team) => team.latitude && team.longitude).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <section className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-2">Veteranos Futebol</h1>
+        <h1 className="text-4xl font-bold mb-2">{t("home", "title", locale)}</h1>
         <p className="text-muted-foreground text-lg mb-4">
-          Contactos de equipas de veteranos de futebol
+          {t("home", "subtitle", locale)}
         </p>
         <p className="text-2xl font-mono font-bold text-primary">
-          {total} equipas registadas
+          {total} {t("home", "teamsRegistered", locale)}
         </p>
       </section>
 
       <section className="mb-8 max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-6">
-          Como funciona?{" "}
+          {t("home", "howItWorks", locale)}{" "}
           <span className="text-base font-normal text-muted-foreground">
-            (para quem ainda não se registou)
+            ({t("home", "forNewUsers", locale)})
           </span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
           <div className="space-y-2">
             <div className="text-3xl">📋</div>
-            <h3 className="font-semibold">1. Registe a sua equipa</h3>
+            <h3 className="font-semibold">{t("home", "step1Title", locale)}</h3>
             <p className="text-sm text-muted-foreground">
-              Preencha o formulário com os dados da equipa — nome,
-              localização, equipamentos, campo e contactos do coordenador.
+              {t("home", "step1Desc", locale)}
             </p>
           </div>
           <div className="space-y-2">
             <div className="text-3xl">🔍</div>
-            <h3 className="font-semibold">2. Encontre adversários</h3>
+            <h3 className="font-semibold">{t("home", "step2Title", locale)}</h3>
             <p className="text-sm text-muted-foreground">
-              Pesquise equipas por nome, concelho ou distrito. Consulte o
-              mapa para encontrar clubes perto de si e combine jogos.
+              {t("home", "step2Desc", locale)}
             </p>
           </div>
           <div className="space-y-2">
             <div className="text-3xl">📅</div>
-            <h3 className="font-semibold">3. Organize os seus jogos</h3>
+            <h3 className="font-semibold">{t("home", "step3Title", locale)}</h3>
             <p className="text-sm text-muted-foreground">
-              Cada equipa tem o seu calendário de jogos. Adicione partidas,
-              registe resultados e partilhe o calendário com a equipa.
+              {t("home", "step3Desc", locale)}
             </p>
           </div>
         </div>
 
         <div className="mt-8 rounded-lg border bg-muted/50 p-5 text-sm text-muted-foreground space-y-2">
+          <p>{t("home", "aboutPlatform", locale)}</p>
+          <p>{t("home", "afterRegister", locale)}</p>
           <p>
-            <strong className="text-foreground">Veteranos Futebol</strong> é
-            uma plataforma gratuita de contactos para equipas de veteranos em
-            Portugal. O objetivo é simples: facilitar a comunicação entre
-            clubes e ajudar a marcar jogos amigáveis ou torneios.
-          </p>
-          <p>
-            Após o registo, receberá um link de acesso por email para gerir a
-            ficha da sua equipa — atualizar dados, adicionar jogos ao
-            calendário, registar resultados e exportar o calendário para o
-            Google Calendar ou telemóvel.
-          </p>
-          <p>
-            Tem uma ideia ou dúvida? Use a página de{" "}
-            <a href="/sugestoes" className="text-primary hover:underline">
-              Sugestões
-            </a>{" "}
-            para contactar a equipa de moderação.
+            {(() => {
+              const suggestionsWord = t("common", "suggestions", locale);
+              const hint = t("home", "questionsHint", locale);
+              const parts = hint.split(suggestionsWord);
+              return parts.map((part, i, arr) =>
+                i < arr.length - 1 ? (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <span key={i}>
+                    {part}
+                    <a href="/sugestoes" className="text-primary hover:underline">
+                      {suggestionsWord}
+                    </a>
+                  </span>
+                ) : (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <span key={i}>{part}</span>
+                )
+              );
+            })()}
           </p>
         </div>
       </section>
@@ -100,18 +105,18 @@ export default async function HomePage() {
       <section className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
         <Link href="/equipas">
           <Button size="lg" variant="outline">
-            Ver Todas as Equipas
+            {t("home", "viewAllTeams", locale)}
           </Button>
         </Link>
         <Link href="/registar">
-          <Button size="lg">Registar a Minha Equipa</Button>
+          <Button size="lg">{t("home", "registerMyTeam", locale)}</Button>
         </Link>
       </section>
 
       <section className="mb-8">
         <MapWrapper teams={allTeams} />
         <p className="text-sm text-muted-foreground text-center mt-2">
-          {teamsOnMap} de {total} equipas visíveis no mapa
+          {tFn("home", "teamsOnMap", locale)(teamsOnMap, total)}
         </p>
       </section>
     </div>
