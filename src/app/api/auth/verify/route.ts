@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyMagicLink } from "@/lib/auth/magic-link";
+import { createCallbackToken } from "@/lib/auth/callback-token";
 import { db } from "@/lib/db";
 import { teams, admins } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -50,15 +51,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Set cookie via response headers and redirect
-  const response = NextResponse.redirect(new URL(redirectTo, request.url));
-  response.cookies.set("coordinator_email", result.email, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    path: "/",
-  });
+  // Create a short-lived callback token to pass email securely
+  const callbackToken = await createCallbackToken(result.email, redirectTo);
 
-  return response;
+  const callbackUrl = new URL("/auth/callback", request.url);
+  callbackUrl.searchParams.set("t", callbackToken);
+  return NextResponse.redirect(callbackUrl);
 }

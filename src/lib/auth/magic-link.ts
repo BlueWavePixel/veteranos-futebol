@@ -51,7 +51,7 @@ export async function createMagicLink(email: string): Promise<string | null> {
 // Grace period: allow token reuse within 5 minutes of first use
 // This handles email clients (Hotmail/Outlook Safe Links) that
 // pre-fetch links automatically, consuming the token before the user clicks
-const GRACE_PERIOD_MS = 5 * 60 * 1000;
+const GRACE_PERIOD_MS = 15 * 60 * 1000;
 
 export async function verifyMagicLink(
   token: string
