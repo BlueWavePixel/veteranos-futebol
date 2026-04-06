@@ -12,7 +12,8 @@ export default async function EquipasPage({
 }: {
   searchParams: Promise<{ q?: string; distrito?: string }>;
 }) {
-  const { q, distrito } = await searchParams;
+  const { q: rawQ, distrito } = await searchParams;
+  const q = rawQ?.replace(/\s+/g, " ").trim() || undefined;
 
   const conditions = [eq(teams.isActive, true)];
 

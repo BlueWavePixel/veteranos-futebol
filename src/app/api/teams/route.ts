@@ -5,8 +5,8 @@ import { eq, ilike, and, or, asc } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get("q");
-  const location = searchParams.get("location");
+  const query = searchParams.get("q")?.replace(/\s+/g, " ").trim() || null;
+  const location = searchParams.get("location")?.replace(/\s+/g, " ").trim() || null;
 
   const conditions = [eq(teams.isActive, true)];
 

@@ -93,7 +93,8 @@ export default async function AdminPage({
     redirect("/admin?inativos=1");
   }
 
-  const { page: pageParam, q, duplicados, inativos } = await searchParams;
+  const { page: pageParam, q: rawQ, duplicados, inativos } = await searchParams;
+  const q = rawQ?.replace(/\s+/g, " ").trim() || undefined;
   const showDuplicates = duplicados === "1";
   const showInactive = inativos === "1";
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
