@@ -6,7 +6,7 @@ import { extractTeamFields } from "@/lib/form-helpers";
 import { createMagicLink } from "@/lib/auth/magic-link";
 import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { t } from "@/lib/i18n/translations";
@@ -32,6 +32,19 @@ async function registerTeam(
 
   if (!rgpdConsent) {
     return { error: "É necessário aceitar a Política de Privacidade." };
+  }
+
+  // Prevent duplicate submissions: reject if same name + email already exists
+  const duplicate = await db
+    .select({ id: teams.id })
+    .from(teams)
+    .where(
+      and(eq(teams.name, fields.name), eq(teams.coordinatorEmail, coordinatorEmail))
+    );
+  if (duplicate.length > 0) {
+    return {
+      error: "Já existe uma equipa registada com este nome e email. Se precisa de ajuda, contacte-nos.",
+    };
   }
 
   let slug = generateSlug(fields.name);

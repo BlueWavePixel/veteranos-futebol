@@ -37,6 +37,7 @@ export function TeamForm({
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(formData: FormData) {
+    if (loading) return;
     if (showRgpd && !rgpdConsent) {
       setError("É necessário aceitar a Política de Privacidade.");
       return;
