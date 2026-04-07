@@ -20,6 +20,15 @@ export default async function HomePage() {
       location: teams.location,
       latitude: teams.latitude,
       longitude: teams.longitude,
+      logoUrl: teams.logoUrl,
+      distrito: teams.distrito,
+      teamTypeF11: teams.teamTypeF11,
+      teamTypeF7: teams.teamTypeF7,
+      teamTypeFutsal: teams.teamTypeFutsal,
+      dinnerThirdParty: teams.dinnerThirdParty,
+      kitPrimaryShirt: teams.kitPrimaryShirt,
+      kitSecondaryShirt: teams.kitSecondaryShirt,
+      fieldName: teams.fieldName,
     })
     .from(teams)
     .where(eq(teams.isActive, true))
@@ -114,7 +123,7 @@ export default async function HomePage() {
       </section>
 
       <section className="mb-8">
-        <MapWrapper teams={allTeams} />
+        <MapWrapper teams={allTeams} locale={locale} />
         <p className="text-sm text-muted-foreground text-center mt-2">
           {tFn("home", "teamsOnMap", locale)(teamsOnMap, total)}
         </p>

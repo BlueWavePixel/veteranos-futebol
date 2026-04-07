@@ -71,6 +71,13 @@
       "when": 1775570022665,
       "tag": "0009_dizzy_purple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775570724829,
+      "tag": "0010_dusty_hammerhead",
+      "breakpoints": true
     }
   ]
 }
