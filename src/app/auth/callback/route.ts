@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { consumeCallbackToken } from "@/lib/auth/callback-token";
+import { signSessionJwt } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { admins } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 const authText: Record<string, string> = {
   pt: "A autenticar... por favor aguarde.",
   br: "Autenticando... por favor aguarde.",
   es: "Autenticando... por favor espere.",
+  en: "Authenticating... please wait.",
 };
 
 export async function GET(request: NextRequest) {
@@ -22,12 +27,21 @@ export async function GET(request: NextRequest) {
   const redirectUrl = new URL(result.redirectTo, request.url).toString();
 
   const localeCookie = request.cookies.get("locale")?.value;
-  const locale = localeCookie === "es" || localeCookie === "br" ? localeCookie : "pt";
+  const locale =
+    localeCookie === "es" || localeCookie === "br" || localeCookie === "en"
+      ? localeCookie
+      : "pt";
   const loadingText = authText[locale];
 
-  // Return an HTML page (200 response) that sets the cookie reliably,
-  // then redirects via meta refresh + JS. A 200 response guarantees
-  // the browser stores the cookie (unlike 302 which some browsers drop).
+  // Determine role from admins table
+  const [admin] = await db
+    .select({ role: admins.role })
+    .from(admins)
+    .where(eq(admins.email, result.email));
+
+  const role = admin ? admin.role : "coordinator";
+  const jwt = await signSessionJwt(result.email, role);
+
   const response = new NextResponse(
     `<!DOCTYPE html>
 <html lang="${locale}">
@@ -47,13 +61,17 @@ export async function GET(request: NextRequest) {
     }
   );
 
-  response.cookies.set("coordinator_email", result.email, {
+  // Set JWT session cookie (replaces old coordinator_email cookie)
+  response.cookies.set("session", jwt, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60, // 7 days
     path: "/",
   });
+
+  // Delete legacy cookie if present
+  response.cookies.delete("coordinator_email");
 
   return response;
 }
