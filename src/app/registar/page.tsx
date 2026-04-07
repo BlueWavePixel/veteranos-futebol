@@ -11,7 +11,10 @@ import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { t } from "@/lib/i18n/translations";
 import type { Locale } from "@/lib/i18n/translations";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { verifyTurnstile } from "@/lib/security/turnstile";
+import { logSecurityEvent } from "@/lib/security/audit";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 
 async function registerTeam(
   formData: FormData
@@ -32,6 +35,25 @@ async function registerTeam(
 
   if (!rgpdConsent) {
     return { error: "É necessário aceitar a Política de Privacidade." };
+  }
+
+  // Verify Turnstile if token provided
+  const turnstileResponse = formData.get("cf-turnstile-response") as string;
+  if (turnstileResponse) {
+    const headerStore = await headers();
+    const ip =
+      headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      headerStore.get("x-real-ip") ||
+      "unknown";
+    const valid = await verifyTurnstile(turnstileResponse, ip);
+    if (!valid) {
+      await logSecurityEvent({
+        eventType: "registration_captcha_failed",
+        email: coordinatorEmail,
+        ip,
+      });
+      return { error: "Verificação de segurança falhou. Tente novamente." };
+    }
   }
 
   // Prevent duplicate submissions: reject if same name + email already exists
@@ -81,6 +103,7 @@ async function registerTeam(
 
 export default async function RegistarPage() {
   const locale = await getLocale();
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -94,7 +117,11 @@ export default async function RegistarPage() {
           {t("register", "goToLogin", locale)}
         </Link>
       </div>
-      <TeamForm action={registerTeam} submitLabel={t("register", "submitButton", locale)} />
+      <TeamForm
+        action={registerTeam}
+        submitLabel={t("register", "submitButton", locale)}
+        turnstileSiteKey={siteKey}
+      />
     </div>
   );
 }

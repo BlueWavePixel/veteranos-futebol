@@ -1,10 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { t, type Locale } from "@/lib/i18n/translations";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: string | HTMLElement,
+        options: Record<string, unknown>
+      ) => string;
+      reset: (widgetId: string) => void;
+      remove: (widgetId: string) => void;
+    };
+  }
+}
 
 export function LoginForm({ locale }: { locale: Locale }) {
   const [email, setEmail] = useState("");
@@ -14,6 +27,51 @@ export function LoginForm({ locale }: { locale: Locale }) {
   const [oldEmail, setOldEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [changeSubmitted, setChangeSubmitted] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
+
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+  const renderWidget = useCallback(() => {
+    if (!siteKey || !turnstileRef.current || !window.turnstile) return;
+    if (widgetIdRef.current) return; // already rendered
+
+    widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+      sitekey: siteKey,
+      callback: (token: string) => setTurnstileToken(token),
+      "expired-callback": () => setTurnstileToken(null),
+      theme: "dark",
+    });
+  }, [siteKey]);
+
+  useEffect(() => {
+    if (!siteKey) return;
+
+    // If turnstile is already loaded (e.g., HMR), render immediately
+    if (window.turnstile) {
+      renderWidget();
+      return;
+    }
+
+    // Load the script
+    const script = document.createElement("script");
+    script.src =
+      "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad";
+    script.async = true;
+
+    (window as unknown as Record<string, unknown>).onTurnstileLoad =
+      renderWidget;
+    document.head.appendChild(script);
+
+    return () => {
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current);
+        widgetIdRef.current = null;
+      }
+    };
+  }, [siteKey, renderWidget]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,7 +79,10 @@ export function LoginForm({ locale }: { locale: Locale }) {
     await fetch("/api/auth/magic-link", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({
+        email,
+        ...(turnstileToken ? { turnstileToken } : {}),
+      }),
     });
     setLoading(false);
     setSent(true);
@@ -61,6 +122,9 @@ export function LoginForm({ locale }: { locale: Locale }) {
             required
           />
         </div>
+        {siteKey && (
+          <div ref={turnstileRef} className="flex justify-center" />
+        )}
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? t("login", "sending", locale) : t("login", "sendAccessLink", locale)}
         </Button>

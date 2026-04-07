@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { RgpdConsent } from "@/components/auth/rgpd-consent";
 import { ImageUpload } from "@/components/teams/image-upload";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import type { Team } from "@/lib/db/schema";
 
 type TeamFormProps = {
@@ -24,6 +25,7 @@ type TeamFormProps = {
   defaultValues?: Partial<Team>;
   submitLabel?: string;
   showRgpd?: boolean;
+  turnstileSiteKey?: string;
 };
 
 export function TeamForm({
@@ -31,6 +33,7 @@ export function TeamForm({
   defaultValues,
   submitLabel = "Registar Equipa",
   showRgpd = true,
+  turnstileSiteKey,
 }: TeamFormProps) {
   const [rgpdConsent, setRgpdConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -473,6 +476,11 @@ export function TeamForm({
       {/* RGPD */}
       {showRgpd && (
         <RgpdConsent checked={rgpdConsent} onCheckedChange={setRgpdConsent} />
+      )}
+
+      {/* Turnstile CAPTCHA */}
+      {turnstileSiteKey && (
+        <TurnstileWidget siteKey={turnstileSiteKey} />
       )}
 
       <Button type="submit" size="lg" className="w-full" disabled={loading}>
