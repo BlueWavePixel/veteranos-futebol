@@ -145,13 +145,12 @@ export async function recalculateDuplicateFlags() {
         }
       }
 
-      // Name match
+      // Name match — only exact or very close (Levenshtein ≤ 1)
       const normNameA = normalizeText(teamA.name);
       const normNameB = normalizeText(teamB.name);
 
       if (normNameA && normNameB) {
         if (normNameA === normNameB) {
-          // Exact name match
           if (0.9 > bestScore) {
             bestScore = 0.9;
             bestReason = "name_exact";
@@ -162,44 +161,6 @@ export async function recalculateDuplicateFlags() {
             if (0.8 > bestScore) {
               bestScore = 0.8;
               bestReason = "name_fuzzy";
-            }
-          } else if (
-            dist >= 2 &&
-            dist <= 3 &&
-            normNameA.length > 8 &&
-            normNameB.length > 8
-          ) {
-            if (0.6 > bestScore) {
-              bestScore = 0.6;
-              bestReason = "name_fuzzy";
-            }
-          }
-        }
-      }
-
-      // Geo proximity
-      if (
-        teamA.latitude &&
-        teamA.longitude &&
-        teamB.latitude &&
-        teamB.longitude
-      ) {
-        const lat1 = parseFloat(teamA.latitude);
-        const lon1 = parseFloat(teamA.longitude);
-        const lat2 = parseFloat(teamB.latitude);
-        const lon2 = parseFloat(teamB.longitude);
-
-        if (!isNaN(lat1) && !isNaN(lon1) && !isNaN(lat2) && !isNaN(lon2)) {
-          const distance = haversineDistance(lat1, lon1, lat2, lon2);
-          if (distance < 100) {
-            if (0.7 > bestScore) {
-              bestScore = 0.7;
-              bestReason = "geo_proximity";
-            }
-          } else if (distance < 500) {
-            if (0.5 > bestScore) {
-              bestScore = 0.5;
-              bestReason = "geo_proximity";
             }
           }
         }
