@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { t, type Locale } from "@/lib/i18n/translations";
 import type { Match } from "@/lib/db/schema";
 
 type Props = {
@@ -13,7 +13,16 @@ type Props = {
   defaultValues?: Match;
 };
 
+function getClientLocale(): Locale {
+  if (typeof document === "undefined") return "pt";
+  const match = document.cookie.match(/locale=(\w+)/);
+  const val = match?.[1];
+  if (val === "pt" || val === "br" || val === "es" || val === "en") return val;
+  return "pt";
+}
+
 export function MatchForm({ action, defaultValues }: Props) {
+  const locale = getClientLocale();
   const defaultDate = defaultValues
     ? new Date(defaultValues.matchDate).toISOString().split("T")[0]
     : "";
@@ -25,12 +34,12 @@ export function MatchForm({ action, defaultValues }: Props) {
     <form action={action} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="opponent">Adversário *</Label>
+          <Label htmlFor="opponent">{t("matches", "opponent", locale)} *</Label>
           <Input
             id="opponent"
             name="opponent"
             required
-            placeholder="Nome da equipa adversária"
+            placeholder={t("matches", "opponentPlaceholder", locale)}
             defaultValue={defaultValues?.opponent || ""}
           />
         </div>
@@ -42,7 +51,7 @@ export function MatchForm({ action, defaultValues }: Props) {
               defaultChecked={defaultValues?.isHome ?? true}
             />
             <Label htmlFor="isHome" className="cursor-pointer">
-              Jogo em casa
+              {t("matches", "homeMatch", locale)}
             </Label>
           </div>
         </div>
@@ -50,7 +59,7 @@ export function MatchForm({ action, defaultValues }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="matchDate">Data *</Label>
+          <Label htmlFor="matchDate">{t("matches", "date", locale)} *</Label>
           <Input
             id="matchDate"
             name="matchDate"
@@ -60,7 +69,7 @@ export function MatchForm({ action, defaultValues }: Props) {
           />
         </div>
         <div>
-          <Label htmlFor="matchTime">Hora</Label>
+          <Label htmlFor="matchTime">{t("matches", "time", locale)}</Label>
           <Input
             id="matchTime"
             name="matchTime"
@@ -72,7 +81,7 @@ export function MatchForm({ action, defaultValues }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="fieldName">Nome do Campo</Label>
+          <Label htmlFor="fieldName">{t("form", "fieldName", locale)}</Label>
           <Input
             id="fieldName"
             name="fieldName"
@@ -81,11 +90,11 @@ export function MatchForm({ action, defaultValues }: Props) {
           />
         </div>
         <div>
-          <Label htmlFor="location">Localização</Label>
+          <Label htmlFor="location">{t("matches", "location", locale)}</Label>
           <Input
             id="location"
             name="location"
-            placeholder="Ex: Seixal, Setúbal"
+            placeholder={t("matches", "locationPlaceholder", locale)}
             defaultValue={defaultValues?.location || ""}
           />
         </div>
@@ -93,7 +102,7 @@ export function MatchForm({ action, defaultValues }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="goalsFor">Golos a favor</Label>
+          <Label htmlFor="goalsFor">{t("matches", "goalsFor", locale)}</Label>
           <Input
             id="goalsFor"
             name="goalsFor"
@@ -104,7 +113,7 @@ export function MatchForm({ action, defaultValues }: Props) {
           />
         </div>
         <div>
-          <Label htmlFor="goalsAgainst">Golos contra</Label>
+          <Label htmlFor="goalsAgainst">{t("matches", "goalsAgainst", locale)}</Label>
           <Input
             id="goalsAgainst"
             name="goalsAgainst"
@@ -117,17 +126,17 @@ export function MatchForm({ action, defaultValues }: Props) {
       </div>
 
       <div>
-        <Label htmlFor="notes">Notas</Label>
+        <Label htmlFor="notes">{t("matches", "matchNotes", locale)}</Label>
         <Textarea
           id="notes"
           name="notes"
-          placeholder="Torneio, amigável, observações..."
+          placeholder={t("matches", "matchNotesPlaceholder", locale)}
           defaultValue={defaultValues?.notes || ""}
         />
       </div>
 
       <Button type="submit" className="w-full">
-        {defaultValues ? "Guardar Alterações" : "Adicionar Jogo"}
+        {defaultValues ? t("common", "save", locale) : t("matches", "addMatch", locale)}
       </Button>
     </form>
   );

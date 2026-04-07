@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { t, type Locale } from "@/lib/i18n/translations";
 import type { Match } from "@/lib/db/schema";
 
 type Props = {
@@ -11,9 +12,21 @@ type Props = {
   deleteAction: (formData: FormData) => Promise<void>;
 };
 
-function formatDate(date: Date) {
+function getClientLocale(): Locale {
+  if (typeof document === "undefined") return "pt";
+  const match = document.cookie.match(/locale=(\w+)/);
+  const val = match?.[1];
+  if (val === "pt" || val === "br" || val === "es" || val === "en") return val;
+  return "pt";
+}
+
+function getDateLocale(locale: Locale) {
+  return locale === "en" ? "en-GB" : locale === "es" ? "es-ES" : locale === "br" ? "pt-BR" : "pt-PT";
+}
+
+function formatDate(date: Date, dateLocale: string) {
   const d = new Date(date);
-  return d.toLocaleDateString("pt-PT", {
+  return d.toLocaleDateString(dateLocale, {
     weekday: "short",
     day: "2-digit",
     month: "2-digit",
@@ -21,16 +34,19 @@ function formatDate(date: Date) {
   });
 }
 
-function formatTime(date: Date) {
+function formatTime(date: Date, dateLocale: string) {
   const d = new Date(date);
-  return d.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" });
 }
 
 export function MatchList({ matches, teamId, deleteAction }: Props) {
+  const locale = getClientLocale();
+  const dateLocale = getDateLocale(locale);
+
   if (matches.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
-        Ainda não adicionou nenhum jogo.
+        {t("matches", "noMatches", locale)}
       </p>
     );
   }
@@ -57,7 +73,7 @@ export function MatchList({ matches, teamId, deleteAction }: Props) {
                   variant={match.isHome ? "default" : "outline"}
                   className="text-[10px] px-1.5"
                 >
-                  {match.isHome ? "Casa" : "Fora"}
+                  {match.isHome ? t("matches", "home", locale) : t("matches", "away", locale)}
                 </Badge>
                 <span className="font-medium truncate">
                   vs {match.opponent}
@@ -70,7 +86,7 @@ export function MatchList({ matches, teamId, deleteAction }: Props) {
               </div>
               <div className="text-xs text-muted-foreground mt-1 space-x-2">
                 <span>
-                  {formatDate(match.matchDate)} {formatTime(match.matchDate)}
+                  {formatDate(match.matchDate, dateLocale)} {formatTime(match.matchDate, dateLocale)}
                 </span>
                 {match.location && <span>· {match.location}</span>}
                 {match.fieldName && <span>· {match.fieldName}</span>}
@@ -84,7 +100,7 @@ export function MatchList({ matches, teamId, deleteAction }: Props) {
             <div className="flex gap-1 shrink-0">
               <Link href={`/dashboard/${teamId}/jogos/${match.id}`}>
                 <Button variant="ghost" size="sm" className="text-xs">
-                  Editar
+                  {t("common", "edit", locale)}
                 </Button>
               </Link>
               <form action={deleteAction}>
@@ -95,7 +111,7 @@ export function MatchList({ matches, teamId, deleteAction }: Props) {
                   size="sm"
                   className="text-destructive hover:text-destructive text-xs"
                 >
-                  Apagar
+                  {t("common", "delete", locale)}
                 </Button>
               </form>
             </div>

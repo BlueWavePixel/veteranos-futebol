@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { t } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +18,7 @@ type Props = { params: Promise<{ teamId: string }> };
 export default async function TransferPage({ params }: Props) {
   const { teamId } = await params;
   const email = await requireCoordinator();
+  const locale = await getLocale();
 
   const [team] = await db
     .select({ id: teams.id, name: teams.name })
@@ -53,23 +56,22 @@ export default async function TransferPage({ params }: Props) {
     <div className="container mx-auto px-4 py-8 max-w-md">
       <Card>
         <CardHeader>
-          <CardTitle>Transferir Equipa</CardTitle>
+          <CardTitle>{t("transfer", "title", locale)}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-6">
-            Transferir a gestão de <strong>{team.name}</strong> para outro
-            responsável. Após a transferência, perderá o acesso de edição.
+            <strong>{team.name}</strong> — {t("transfer", "desc", locale)}
           </p>
           <form action={transferTeam} className="space-y-4">
             <div>
-              <Label htmlFor="newName">Nome do Novo Responsável *</Label>
+              <Label htmlFor="newName">{t("transfer", "newCoordinatorName", locale)}</Label>
               <Input id="newName" name="newName" required />
             </div>
             <div>
-              <Label htmlFor="newEmail">Email do Novo Responsável *</Label>
+              <Label htmlFor="newEmail">{t("transfer", "newCoordinatorEmail", locale)}</Label>
               <Input id="newEmail" name="newEmail" type="email" required />
             </div>
-            <Button type="submit" className="w-full">Confirmar Transferência</Button>
+            <Button type="submit" className="w-full">{t("transfer", "confirm", locale)}</Button>
           </form>
         </CardContent>
       </Card>

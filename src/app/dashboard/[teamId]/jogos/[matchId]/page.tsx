@@ -7,6 +7,8 @@ import { logAudit } from "@/lib/audit";
 import { MatchForm } from "@/components/teams/match-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { t } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,7 @@ type Props = { params: Promise<{ teamId: string; matchId: string }> };
 export default async function EditMatchPage({ params }: Props) {
   const { teamId, matchId } = await params;
   const email = await requireCoordinator();
+  const locale = await getLocale();
 
   const [team] = await db
     .select()
@@ -76,10 +79,10 @@ export default async function EditMatchPage({ params }: Props) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Editar Jogo</h1>
+        <h1 className="text-3xl font-bold">{t("matches", "editMatch", locale)}</h1>
         <Link href={`/dashboard/${teamId}/jogos`}>
           <Button variant="outline" size="sm">
-            Voltar
+            {t("common", "back", locale)}
           </Button>
         </Link>
       </div>

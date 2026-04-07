@@ -2,6 +2,15 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { t, type Locale } from "@/lib/i18n/translations";
+
+function getClientLocale(): Locale {
+  if (typeof document === "undefined") return "pt";
+  const match = document.cookie.match(/locale=(\w+)/);
+  const val = match?.[1];
+  if (val === "pt" || val === "br" || val === "es" || val === "en") return val;
+  return "pt";
+}
 
 export function RgpdConsent({
   checked,
@@ -10,6 +19,8 @@ export function RgpdConsent({
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
 }) {
+  const locale = getClientLocale();
+
   return (
     <div className="flex items-start gap-3 rounded-lg border border-border p-4">
       <Checkbox
@@ -22,17 +33,13 @@ export function RgpdConsent({
         htmlFor="rgpd"
         className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
       >
-        Ao submeter este formulário, consinto que os meus dados pessoais (nome,
-        email, telefone) sejam armazenados e partilhados com outras equipas de
-        veteranos registadas na plataforma, com a finalidade exclusiva de
-        facilitar o contacto para marcação de jogos. Posso a qualquer momento
-        editar ou eliminar os meus dados. Consulte a nossa{" "}
+        {t("rgpd", "consentText", locale)}{" "}
         <Link
           href="/privacidade"
           className="text-primary hover:underline"
           target="_blank"
         >
-          Política de Privacidade
+          {t("common", "privacyPolicy", locale)}
         </Link>
         .
       </label>
