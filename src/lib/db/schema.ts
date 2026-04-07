@@ -138,6 +138,16 @@ export const suggestions = pgTable("suggestions", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const securityLog = pgTable("security_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventType: text("event_type").notNull(),
+  email: text("email"),
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export type Team = typeof teams.$inferSelect;
 export type NewTeam = typeof teams.$inferInsert;
 export type Admin = typeof admins.$inferSelect;
@@ -145,3 +155,4 @@ export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type Match = typeof matches.$inferSelect;
 export type NewMatch = typeof matches.$inferInsert;
 export type Suggestion = typeof suggestions.$inferSelect;
+export type SecurityLogEntry = typeof securityLog.$inferSelect;
