@@ -8,6 +8,7 @@ import {
   jsonb,
   pgEnum,
   integer,
+  real,
 } from "drizzle-orm/pg-core";
 
 export const adminRoleEnum = pgEnum("admin_role", [
@@ -147,6 +148,34 @@ export const securityLog = pgTable("security_log", {
   details: jsonb("details"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const duplicatePairStatus = pgEnum("duplicate_pair_status", [
+  "pending",
+  "confirmed_duplicate",
+  "not_duplicate",
+  "merged",
+]);
+
+export const duplicatePairs = pgTable("duplicate_pairs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  teamAId: uuid("team_a_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  teamBId: uuid("team_b_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  similarityScore: real("similarity_score").notNull().default(0.5),
+  status: duplicatePairStatus("status").notNull().default("pending"),
+  resolvedBy: uuid("resolved_by").references(() => admins.id, {
+    onDelete: "set null",
+  }),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type DuplicatePair = typeof duplicatePairs.$inferSelect;
+export type NewDuplicatePair = typeof duplicatePairs.$inferInsert;
 
 export type Team = typeof teams.$inferSelect;
 export type NewTeam = typeof teams.$inferInsert;
