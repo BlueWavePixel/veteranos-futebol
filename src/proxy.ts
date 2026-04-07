@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applySecurityHeaders } from "@/lib/security/headers";
+
+const ANGLOPHONE_COUNTRIES = new Set([
+  "US", "GB", "AU", "CA", "IE", "NZ", "ZA", "IN",
+]);
 
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
+
+  // Apply security headers
+  applySecurityHeaders(response.headers);
 
   if (!request.cookies.get("locale")) {
     const country = request.headers.get("x-vercel-ip-country") || "PT";
     let locale = "pt";
     if (country === "ES") locale = "es";
     else if (country === "BR") locale = "br";
+    else if (ANGLOPHONE_COUNTRIES.has(country)) locale = "en";
 
     response.cookies.set("locale", locale, {
       path: "/",
