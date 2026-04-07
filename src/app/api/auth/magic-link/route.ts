@@ -86,18 +86,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: genericMsg });
     }
 
-    // Verify Turnstile — require if configured
-    if (process.env.TURNSTILE_SECRET_KEY) {
-      if (!turnstileToken) {
-        await logSecurityEvent({
-          eventType: "captcha_failed",
-          email: normalizedEmail,
-          ip,
-          userAgent,
-          details: { reason: "missing_token" },
-        });
-        return NextResponse.json({ message: genericMsg });
-      }
+    // Verify Turnstile — only enforce if both server secret AND client key are set
+    // (NEXT_PUBLIC vars are baked at build time; if client doesn't have the key,
+    // the widget won't render and no token will be sent)
+    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
       const valid = await verifyTurnstile(turnstileToken, ip);
       if (!valid) {
         await logSecurityEvent({

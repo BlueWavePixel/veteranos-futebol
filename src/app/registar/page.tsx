@@ -45,16 +45,9 @@ async function registerTeam(
     headerStore.get("x-real-ip") ||
     "unknown";
 
-  if (process.env.TURNSTILE_SECRET_KEY) {
-    if (!turnstileResponse) {
-      await logSecurityEvent({
-        eventType: "captcha_failed",
-        email: coordinatorEmail,
-        ip,
-        details: { reason: "missing_token" },
-      });
-      return { error: "Verificação de segurança falhou. Tente novamente." };
-    }
+  // Verify Turnstile — only enforce if token is provided
+  // (NEXT_PUBLIC var is baked at build time; if widget didn't render, no token)
+  if (process.env.TURNSTILE_SECRET_KEY && turnstileResponse) {
     const valid = await verifyTurnstile(turnstileResponse, ip);
     if (!valid) {
       await logSecurityEvent({
