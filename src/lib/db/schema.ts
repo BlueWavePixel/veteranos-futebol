@@ -9,6 +9,8 @@ import {
   pgEnum,
   integer,
   real,
+  uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const adminRoleEnum = pgEnum("admin_role", [
@@ -172,7 +174,10 @@ export const duplicatePairs = pgTable("duplicate_pairs", {
   }),
   resolvedAt: timestamp("resolved_at"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  uniqueIndex("duplicate_pairs_team_pair_idx").on(table.teamAId, table.teamBId),
+  index("duplicate_pairs_status_idx").on(table.status),
+]);
 
 export type DuplicatePair = typeof duplicatePairs.$inferSelect;
 export type NewDuplicatePair = typeof duplicatePairs.$inferInsert;

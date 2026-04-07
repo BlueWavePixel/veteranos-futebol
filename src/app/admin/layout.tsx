@@ -34,7 +34,7 @@ export default async function AdminLayout({
             href="/admin/sugestoes"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
-            Sugestoes
+            Sugestões
           </Link>
           <Link
             href="/admin/duplicados"

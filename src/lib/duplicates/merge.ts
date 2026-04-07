@@ -21,7 +21,8 @@ export async function mergeTeams(
   primaryId: string,
   secondaryId: string,
   pairId: string,
-  adminEmail: string
+  adminEmail: string,
+  adminId: string
 ) {
   // 1. Load both teams
   const [primary] = await db
@@ -138,6 +139,7 @@ export async function mergeTeams(
     .set({
       status: "merged",
       resolvedAt: new Date(),
+      resolvedBy: adminId,
     })
     .where(eq(duplicatePairs.id, pairId));
 

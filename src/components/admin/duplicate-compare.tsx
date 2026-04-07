@@ -105,7 +105,7 @@ export function DuplicateCompare({
         {isSelfCheck ? (
           <div className="mb-4">
             <p className="text-sm text-muted-foreground">
-              O nome da equipa e igual ao nome do coordenador. Pode ser um
+              O nome da equipa é igual ao nome do coordenador. Pode ser um
               registo pessoal em vez de uma equipa.
             </p>
             <div className="mt-2 space-y-1">
@@ -240,7 +240,7 @@ export function DuplicateCompare({
             <form action={resolveNotDuplicateAction}>
               <input type="hidden" name="pairId" value={pair.id} />
               <Button type="submit" variant="outline" size="sm">
-                Nao e Duplicado
+                Não é Duplicado
               </Button>
             </form>
 

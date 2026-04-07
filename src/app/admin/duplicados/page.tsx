@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { duplicatePairs, teams, admins } from "@/lib/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, count } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { mergeTeams } from "@/lib/duplicates/merge";
 import { redirect } from "next/navigation";
@@ -59,7 +59,7 @@ export default async function DuplicadosPage() {
       throw new Error("Dados em falta para o merge.");
     }
 
-    await mergeTeams(primaryId, secondaryId, pairId, adminUser.email);
+    await mergeTeams(primaryId, secondaryId, pairId, adminUser.email, adminUser.id);
     redirect("/admin/duplicados");
   }
 
@@ -89,15 +89,19 @@ export default async function DuplicadosPage() {
   }
 
   // Count resolved pairs for stats
-  const allPairs = await db.select().from(duplicatePairs);
-  const resolvedCount = allPairs.filter(
-    (p) => p.status !== "pending"
-  ).length;
-  const mergedCount = allPairs.filter((p) => p.status === "merged").length;
+  const [{ count: resolvedCount }] = await db
+    .select({ count: count() })
+    .from(duplicatePairs)
+    .where(eq(duplicatePairs.status, "not_duplicate"));
+
+  const [{ count: mergedCount }] = await db
+    .select({ count: count() })
+    .from(duplicatePairs)
+    .where(eq(duplicatePairs.status, "merged"));
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Gestao de Duplicados</h1>
+      <h1 className="text-3xl font-bold mb-6">Gestão de Duplicados</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <Card>
