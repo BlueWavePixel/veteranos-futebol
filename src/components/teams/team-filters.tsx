@@ -10,11 +10,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTransition } from "react";
+import { t, type Locale } from "@/lib/i18n/translations";
+
+function getClientLocale(): Locale {
+  if (typeof document === "undefined") return "pt";
+  const match = document.cookie.match(/locale=(\w+)/);
+  const val = match?.[1];
+  if (val === "pt" || val === "br" || val === "es" || val === "en") return val;
+  return "pt";
+}
 
 export function TeamFilters({ distritos }: { distritos: string[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
+  const locale = getClientLocale();
 
   function updateFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -31,7 +41,7 @@ export function TeamFilters({ distritos }: { distritos: string[] }) {
   return (
     <div className="flex flex-col sm:flex-row gap-3 mb-6">
       <Input
-        placeholder="Pesquisar equipa ou concelho..."
+        placeholder={t("teamsDirectory", "searchPlaceholder", locale)}
         defaultValue={searchParams.get("q") || ""}
         onChange={(e) => updateFilter("q", e.target.value)}
         className="flex-1"
@@ -41,10 +51,10 @@ export function TeamFilters({ distritos }: { distritos: string[] }) {
         onValueChange={(value) => updateFilter("distrito", value ?? "all")}
       >
         <SelectTrigger className="w-full sm:w-[220px]">
-          <SelectValue placeholder="Distrito" />
+          <SelectValue placeholder={t("teamsDirectory", "districtLabel", locale)} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos os distritos</SelectItem>
+          <SelectItem value="all">{t("teamsDirectory", "allDistricts", locale)}</SelectItem>
           {distritos.map((d) => (
             <SelectItem key={d} value={d}>
               {d}

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { RgpdConsent } from "@/components/auth/rgpd-consent";
 import { ImageUpload } from "@/components/teams/image-upload";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
+import { t, type Locale } from "@/lib/i18n/translations";
 import type { Team } from "@/lib/db/schema";
 
 type TeamFormProps = {
@@ -24,22 +26,37 @@ type TeamFormProps = {
   defaultValues?: Partial<Team>;
   submitLabel?: string;
   showRgpd?: boolean;
+  turnstileSiteKey?: string;
+  csrfToken?: string;
 };
+
+function getClientLocale(): Locale {
+  if (typeof document === "undefined") return "pt";
+  const match = document.cookie.match(/locale=(\w+)/);
+  const val = match?.[1];
+  if (val === "pt" || val === "br" || val === "es" || val === "en") return val;
+  return "pt";
+}
 
 export function TeamForm({
   action,
   defaultValues,
-  submitLabel = "Registar Equipa",
+  submitLabel,
   showRgpd = true,
+  turnstileSiteKey,
+  csrfToken,
 }: TeamFormProps) {
   const [rgpdConsent, setRgpdConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const locale = getClientLocale();
+
+  const resolvedSubmitLabel = submitLabel || t("register", "submitButton", locale);
 
   async function handleSubmit(formData: FormData) {
     if (loading) return;
     if (showRgpd && !rgpdConsent) {
-      setError("É necessário aceitar a Política de Privacidade.");
+      setError(t("form", "rgpdRequired", locale));
       return;
     }
     setError(null);
@@ -54,6 +71,7 @@ export function TeamForm({
 
   return (
     <form action={handleSubmit} className="space-y-6">
+      {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
       {error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
@@ -62,10 +80,10 @@ export function TeamForm({
 
       {/* Dados da Equipa */}
       <fieldset className="space-y-4">
-        <legend className="text-lg font-semibold">Dados da Equipa</legend>
+        <legend className="text-lg font-semibold">{t("form", "teamData", locale)}</legend>
 
         <div>
-          <Label htmlFor="name">Nome da Equipa *</Label>
+          <Label htmlFor="name">{t("form", "teamName", locale)} *</Label>
           <Input
             id="name"
             name="name"
@@ -76,21 +94,21 @@ export function TeamForm({
 
         <ImageUpload
           name="logoUrl"
-          label="Logotipo da Equipa"
+          label={t("form", "teamLogo", locale)}
           currentUrl={defaultValues?.logoUrl}
           type="logo"
         />
 
         <ImageUpload
           name="teamPhotoUrl"
-          label="Foto de Equipa"
+          label={t("form", "teamPhoto", locale)}
           currentUrl={defaultValues?.teamPhotoUrl}
           type="photo"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="foundedYear">Ano de Fundação</Label>
+            <Label htmlFor="foundedYear">{t("form", "foundedYear", locale)}</Label>
             <Input
               id="foundedYear"
               name="foundedYear"
@@ -101,7 +119,7 @@ export function TeamForm({
             />
           </div>
           <div>
-            <Label htmlFor="playerCount">N.º de Jogadores</Label>
+            <Label htmlFor="playerCount">{t("form", "playerCount", locale)}</Label>
             <Input
               id="playerCount"
               name="playerCount"
@@ -111,14 +129,14 @@ export function TeamForm({
             />
           </div>
           <div>
-            <Label className="mb-2 block">Escalão Etário</Label>
+            <Label className="mb-2 block">{t("form", "ageGroup", locale)}</Label>
             <div className="flex flex-wrap gap-4">
               {[
                 { value: "35+", label: "+35" },
                 { value: "40+", label: "+40" },
                 { value: "45+", label: "+45" },
                 { value: "50+", label: "+50" },
-                { value: "misto", label: "Misto" },
+                { value: "misto", label: t("form", "mixed", locale) },
               ].map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -139,7 +157,7 @@ export function TeamForm({
 
         {/* Tipo de Equipa */}
         <div>
-          <Label className="mb-2 block">Tipo de Equipa</Label>
+          <Label className="mb-2 block">{t("form", "teamType", locale)}</Label>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <Switch
@@ -175,7 +193,7 @@ export function TeamForm({
             defaultChecked={defaultValues?.dinnerThirdParty || false}
           />
           <Label htmlFor="dinnerThirdParty">
-            Disponível para Jantar (3ª Parte)
+            {t("form", "dinner", locale)}
           </Label>
         </div>
       </fieldset>
@@ -183,33 +201,33 @@ export function TeamForm({
       {/* Equipamentos */}
       <fieldset className="space-y-4">
         <legend className="text-lg font-semibold">
-          Equipamento Principal
+          {t("form", "primaryKit", locale)}
         </legend>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="kitPrimaryShirt">Camisola</Label>
+            <Label htmlFor="kitPrimaryShirt">{t("form", "shirt", locale)}</Label>
             <Input
               id="kitPrimaryShirt"
               name="kitPrimaryShirt"
-              placeholder="Ex: Vermelho e Branco"
+              placeholder={locale === "en" ? "e.g. Red and White" : "Ex: Vermelho e Branco"}
               defaultValue={defaultValues?.kitPrimaryShirt || defaultValues?.kitPrimary || ""}
             />
           </div>
           <div>
-            <Label htmlFor="kitPrimaryShorts">Calções</Label>
+            <Label htmlFor="kitPrimaryShorts">{t("form", "shorts", locale)}</Label>
             <Input
               id="kitPrimaryShorts"
               name="kitPrimaryShorts"
-              placeholder="Ex: Preto"
+              placeholder={locale === "en" ? "e.g. Black" : "Ex: Preto"}
               defaultValue={defaultValues?.kitPrimaryShorts || ""}
             />
           </div>
           <div>
-            <Label htmlFor="kitPrimarySocks">Meias</Label>
+            <Label htmlFor="kitPrimarySocks">{t("form", "socks", locale)}</Label>
             <Input
               id="kitPrimarySocks"
               name="kitPrimarySocks"
-              placeholder="Ex: Vermelho"
+              placeholder={locale === "en" ? "e.g. Red" : "Ex: Vermelho"}
               defaultValue={defaultValues?.kitPrimarySocks || ""}
             />
           </div>
@@ -218,33 +236,33 @@ export function TeamForm({
 
       <fieldset className="space-y-4">
         <legend className="text-lg font-semibold">
-          Equipamento Alternativo
+          {t("form", "secondaryKit", locale)}
         </legend>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="kitSecondaryShirt">Camisola</Label>
+            <Label htmlFor="kitSecondaryShirt">{t("form", "shirt", locale)}</Label>
             <Input
               id="kitSecondaryShirt"
               name="kitSecondaryShirt"
-              placeholder="Ex: Branco"
+              placeholder={locale === "en" ? "e.g. White" : "Ex: Branco"}
               defaultValue={defaultValues?.kitSecondaryShirt || defaultValues?.kitSecondary || ""}
             />
           </div>
           <div>
-            <Label htmlFor="kitSecondaryShorts">Calções</Label>
+            <Label htmlFor="kitSecondaryShorts">{t("form", "shorts", locale)}</Label>
             <Input
               id="kitSecondaryShorts"
               name="kitSecondaryShorts"
-              placeholder="Ex: Branco"
+              placeholder={locale === "en" ? "e.g. White" : "Ex: Branco"}
               defaultValue={defaultValues?.kitSecondaryShorts || ""}
             />
           </div>
           <div>
-            <Label htmlFor="kitSecondarySocks">Meias</Label>
+            <Label htmlFor="kitSecondarySocks">{t("form", "socks", locale)}</Label>
             <Input
               id="kitSecondarySocks"
               name="kitSecondarySocks"
-              placeholder="Ex: Branco"
+              placeholder={locale === "en" ? "e.g. White" : "Ex: Branco"}
               defaultValue={defaultValues?.kitSecondarySocks || ""}
             />
           </div>
@@ -253,10 +271,10 @@ export function TeamForm({
 
       {/* Responsável */}
       <fieldset className="space-y-4">
-        <legend className="text-lg font-semibold">Responsável</legend>
+        <legend className="text-lg font-semibold">{t("form", "coordinator", locale)}</legend>
 
         <div>
-          <Label htmlFor="coordinatorEmail">Email do Responsável *</Label>
+          <Label htmlFor="coordinatorEmail">{t("form", "coordinatorEmail", locale)} *</Label>
           <Input
             id="coordinatorEmail"
             name="coordinatorEmail"
@@ -268,7 +286,7 @@ export function TeamForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="coordinatorName">Nome do Responsável *</Label>
+            <Label htmlFor="coordinatorName">{t("form", "coordinatorName", locale)} *</Label>
             <Input
               id="coordinatorName"
               name="coordinatorName"
@@ -277,7 +295,7 @@ export function TeamForm({
             />
           </div>
           <div>
-            <Label htmlFor="coordinatorPhone">Contacto do Responsável</Label>
+            <Label htmlFor="coordinatorPhone">{t("form", "coordinatorPhone", locale)}</Label>
             <Input
               id="coordinatorPhone"
               name="coordinatorPhone"
@@ -290,7 +308,7 @@ export function TeamForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="coordinatorAltName">
-              Nome Responsável Alternativo
+              {t("form", "altCoordinatorName", locale)}
             </Label>
             <Input
               id="coordinatorAltName"
@@ -299,7 +317,7 @@ export function TeamForm({
             />
           </div>
           <div>
-            <Label htmlFor="coordinatorAltPhone">Contacto Alternativo</Label>
+            <Label htmlFor="coordinatorAltPhone">{t("form", "altPhone", locale)}</Label>
             <Input
               id="coordinatorAltPhone"
               name="coordinatorAltPhone"
@@ -312,11 +330,11 @@ export function TeamForm({
 
       {/* Campo */}
       <fieldset className="space-y-4">
-        <legend className="text-lg font-semibold">Campo</legend>
+        <legend className="text-lg font-semibold">{t("form", "field", locale)}</legend>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="fieldName">Nome do Campo</Label>
+            <Label htmlFor="fieldName">{t("form", "fieldName", locale)}</Label>
             <Input
               id="fieldName"
               name="fieldName"
@@ -324,27 +342,27 @@ export function TeamForm({
             />
           </div>
           <div>
-            <Label htmlFor="fieldType">Tipo de Campo</Label>
+            <Label htmlFor="fieldType">{t("form", "fieldType", locale)}</Label>
             <Select
               name="fieldType"
               defaultValue={defaultValues?.fieldType || ""}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecionar" />
+                <SelectValue placeholder={t("form", "select", locale)} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sintetico">Sintético</SelectItem>
-                <SelectItem value="relva">Relva Natural</SelectItem>
-                <SelectItem value="pelado">Pelado</SelectItem>
-                <SelectItem value="futsal">Futsal (pavilhão)</SelectItem>
-                <SelectItem value="outro">Outro</SelectItem>
+                <SelectItem value="sintetico">{t("form", "synthetic", locale)}</SelectItem>
+                <SelectItem value="relva">{t("form", "naturalGrass", locale)}</SelectItem>
+                <SelectItem value="pelado">{t("form", "dirt", locale)}</SelectItem>
+                <SelectItem value="futsal">{t("form", "futsalCourt", locale)}</SelectItem>
+                <SelectItem value="outro">{t("form", "other", locale)}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         <div>
-          <Label htmlFor="fieldAddress">Morada do Campo</Label>
+          <Label htmlFor="fieldAddress">{t("form", "fieldAddress", locale)}</Label>
           <Input
             id="fieldAddress"
             name="fieldAddress"
@@ -353,18 +371,18 @@ export function TeamForm({
         </div>
 
         <div>
-          <Label htmlFor="localidade">Localidade / Freguesia</Label>
+          <Label htmlFor="localidade">{t("form", "parish", locale)}</Label>
           <Input
             id="localidade"
             name="localidade"
-            placeholder="Ex: Arrentela, Brejos de Azeitão..."
+            placeholder={locale === "en" ? "e.g. Arrentela, Brejos de Azeitão..." : "Ex: Arrentela, Brejos de Azeitão..."}
             defaultValue={defaultValues?.localidade || ""}
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="concelho">Concelho *</Label>
+            <Label htmlFor="concelho">{t("form", "municipality", locale)} *</Label>
             <Input
               id="concelho"
               name="concelho"
@@ -373,13 +391,13 @@ export function TeamForm({
             />
           </div>
           <div>
-            <Label htmlFor="distrito">Distrito</Label>
+            <Label htmlFor="distrito">{t("form", "district", locale)}</Label>
             <Select
               name="distrito"
               defaultValue={defaultValues?.distrito || ""}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecionar distrito" />
+                <SelectValue placeholder={t("form", "selectDistrict", locale)} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Aveiro">Aveiro</SelectItem>
@@ -402,14 +420,14 @@ export function TeamForm({
                 <SelectItem value="Viseu">Viseu</SelectItem>
                 <SelectItem value="Açores">Açores</SelectItem>
                 <SelectItem value="Madeira">Madeira</SelectItem>
-                <SelectItem value="Internacional">Internacional</SelectItem>
+                <SelectItem value="Internacional">{t("form", "international", locale)}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         <div>
-          <Label htmlFor="mapsUrl">Link Google Maps</Label>
+          <Label htmlFor="mapsUrl">{t("form", "mapsLink", locale)}</Label>
           <Input
             id="mapsUrl"
             name="mapsUrl"
@@ -418,14 +436,14 @@ export function TeamForm({
             defaultValue={defaultValues?.mapsUrl || ""}
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Cole o link do Google Maps — aceita links completos, links curtos e coordenadas
+            {t("form", "mapsHintShort", locale)}
           </p>
         </div>
       </fieldset>
 
       {/* Redes Sociais e Horário */}
       <fieldset className="space-y-4">
-        <legend className="text-lg font-semibold">Informação Adicional</legend>
+        <legend className="text-lg font-semibold">{t("form", "additionalInfo", locale)}</legend>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -449,11 +467,11 @@ export function TeamForm({
         </div>
 
         <div>
-          <Label htmlFor="trainingSchedule">Horário de Treino / Jogo</Label>
+          <Label htmlFor="trainingSchedule">{t("form", "trainingSchedule", locale)}</Label>
           <Input
             id="trainingSchedule"
             name="trainingSchedule"
-            placeholder="Ex: Quartas 21h, Sábados 16h"
+            placeholder={locale === "en" ? "e.g. Wednesdays 9pm, Saturdays 4pm" : "Ex: Quartas 21h, Sábados 16h"}
             defaultValue={defaultValues?.trainingSchedule || ""}
           />
         </div>
@@ -461,7 +479,7 @@ export function TeamForm({
 
       {/* Observações */}
       <div>
-        <Label htmlFor="notes">Observações</Label>
+        <Label htmlFor="notes">{t("form", "notes", locale)}</Label>
         <Textarea
           id="notes"
           name="notes"
@@ -475,8 +493,13 @@ export function TeamForm({
         <RgpdConsent checked={rgpdConsent} onCheckedChange={setRgpdConsent} />
       )}
 
+      {/* Turnstile CAPTCHA */}
+      {turnstileSiteKey && (
+        <TurnstileWidget siteKey={turnstileSiteKey} />
+      )}
+
       <Button type="submit" size="lg" className="w-full" disabled={loading}>
-        {loading ? "A submeter..." : submitLabel}
+        {loading ? t("form", "submitting", locale) : resolvedSubmitLabel}
       </Button>
     </form>
   );

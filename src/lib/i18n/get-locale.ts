@@ -4,6 +4,6 @@ import type { Locale } from "./translations";
 export async function getLocale(): Promise<Locale> {
   const cookieStore = await cookies();
   const locale = cookieStore.get("locale")?.value;
-  if (locale === "pt" || locale === "br" || locale === "es") return locale;
+  if (locale === "pt" || locale === "br" || locale === "es" || locale === "en") return locale;
   return "pt";
 }

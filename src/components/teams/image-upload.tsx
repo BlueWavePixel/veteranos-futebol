@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { t, type Locale } from "@/lib/i18n/translations";
 
 type ImageUploadProps = {
   name: string;
@@ -9,6 +10,14 @@ type ImageUploadProps = {
   currentUrl?: string | null;
   type: "logo" | "photo";
 };
+
+function getClientLocale(): Locale {
+  if (typeof document === "undefined") return "pt";
+  const match = document.cookie.match(/locale=(\w+)/);
+  const val = match?.[1];
+  if (val === "pt" || val === "br" || val === "es" || val === "en") return val;
+  return "pt";
+}
 
 export function ImageUpload({
   name,
@@ -20,6 +29,7 @@ export function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState(currentUrl || "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const locale = getClientLocale();
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -44,11 +54,11 @@ export function ImageUpload({
         setUploadedUrl(data.url);
         setPreview(data.url);
       } else {
-        alert(data.error || "Erro ao enviar imagem");
+        alert(data.error || t("imageUpload", "error", locale));
         setPreview(currentUrl || null);
       }
     } catch {
-      alert("Erro ao enviar imagem");
+      alert(t("imageUpload", "error", locale));
       setPreview(currentUrl || null);
     } finally {
       setUploading(false);
@@ -79,10 +89,14 @@ export function ImageUpload({
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
           >
-            {uploading ? "A enviar..." : preview ? "Alterar" : "Escolher imagem"}
+            {uploading
+              ? t("imageUpload", "uploading", locale)
+              : preview
+                ? t("imageUpload", "change", locale)
+                : t("imageUpload", "choose", locale)}
           </Button>
           <p className="text-xs text-muted-foreground">
-            JPG, PNG, WebP, GIF ou SVG (máx. 5MB).
+            {t("imageUpload", "hint", locale)}
           </p>
         </div>
       </div>

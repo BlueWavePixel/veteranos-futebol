@@ -5,11 +5,14 @@ import { requireCoordinator } from "@/lib/auth/session";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { t, tFn } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const email = await requireCoordinator();
+  const locale = await getLocale();
 
   const myTeams = await db
     .select()
@@ -34,44 +37,39 @@ export default async function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-2">Painel do Coordenador</h1>
+      <h1 className="text-3xl font-bold mb-2">{t("dashboard", "title", locale)}</h1>
       <p className="text-muted-foreground mb-6">
-        Bem-vindo! Aqui pode gerir tudo sobre a sua equipa.
+        {t("dashboard", "welcome", locale)}
       </p>
 
       {/* Ajuda / Resumo */}
       <Card className="mb-8 border-primary/30 bg-primary/5">
         <CardHeader>
-          <CardTitle className="text-base">O que pode fazer aqui?</CardTitle>
+          <CardTitle className="text-base">{t("dashboard", "whatCanYouDo", locale)}</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2 text-muted-foreground">
           <p>
-            <strong className="text-foreground">✏️ Editar Equipa</strong> —
-            Atualize o nome, localização, equipamentos, campo, contactos,
-            logotipo e foto de equipa.
+            <strong className="text-foreground">✏️ {t("dashboard", "helpEditTeam", locale)}</strong> —{" "}
+            {t("dashboard", "helpEditTeamDesc", locale)}
           </p>
           <p>
-            <strong className="text-foreground">📅 Calendário de Jogos</strong>{" "}
-            — Adicione, edite ou apague jogos. Registe resultados e partilhe
-            o calendário com a equipa exportando o ficheiro .ics para o
-            Google Calendar ou telemóvel.
+            <strong className="text-foreground">📅 {t("dashboard", "helpMatchCalendar", locale)}</strong>{" "}
+            — {t("dashboard", "helpMatchCalendarDesc", locale)}
           </p>
           <p>
-            <strong className="text-foreground">🔄 Transferir Coordenação</strong>{" "}
-            — Passe a gestão da equipa para outro coordenador, indicando o
-            novo email.
+            <strong className="text-foreground">🔄 {t("dashboard", "helpTransfer", locale)}</strong>{" "}
+            — {t("dashboard", "helpTransferDesc", locale)}
           </p>
           <p>
-            <strong className="text-foreground">💡 Sugestões</strong> — Tem
-            uma ideia ou dúvida?{" "}
+            <strong className="text-foreground">💡 {t("dashboard", "helpSuggestions", locale)}</strong> — {t("dashboard", "helpSuggestionsDesc", locale)}{" "}
             <Link href="/sugestoes" className="text-primary hover:underline">
-              Envie uma sugestão
+              {t("dashboard", "helpSuggestionsLink", locale)}
             </Link>{" "}
-            à equipa de moderação.
+            {t("dashboard", "helpSuggestionsLinkSuffix", locale)}
           </p>
           <p>
-            <strong className="text-foreground">🗑️ Eliminar Equipa</strong> —
-            Remove a equipa da plataforma (pode ser revertido pela moderação).
+            <strong className="text-foreground">🗑️ {t("dashboard", "helpDeleteTeam", locale)}</strong> —{" "}
+            {t("dashboard", "helpDeleteTeamDesc", locale)}
           </p>
         </CardContent>
       </Card>
@@ -81,12 +79,11 @@ export default async function DashboardPage() {
         <Card className="mb-6 border-orange-500/50 bg-orange-500/10">
           <CardContent className="p-5">
             <p className="text-sm font-medium text-orange-400 mb-1">
-              ⚠ Equipa{inactiveTeams.length > 1 ? "s" : ""} desativada{inactiveTeams.length > 1 ? "s" : ""}
+              ⚠ {t("common", "teams", locale)} {inactiveTeams.length > 1 ? t("dashboard", "inactiveTeamWarningPlural", locale) : t("dashboard", "inactiveTeamWarning", locale)}
             </p>
             <p className="text-sm text-muted-foreground">
-              A sua equipa <strong>{inactiveTeams.map((t) => t.name).join(", ")}</strong> foi
-              desativada, provavelmente por ter mais que um contacto registado.
-              Contacte o administrador para resolver a situação.
+              <strong>{inactiveTeams.map((tm) => tm.name).join(", ")}</strong>{" "}
+              {t("dashboard", "inactiveTeamDesc", locale)}
             </p>
           </CardContent>
         </Card>
@@ -97,17 +94,17 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-muted-foreground mb-4">
-              Nenhuma equipa associada a este email.
+              {t("dashboard", "noTeams", locale)}
             </p>
             <Link href="/registar">
-              <Button>Registar Equipa</Button>
+              <Button>{t("dashboard", "registerTeam", locale)}</Button>
             </Link>
           </CardContent>
         </Card>
       ) : myTeams.length === 0 ? null : (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">
-            {myTeams.length === 1 ? "A minha equipa" : "As minhas equipas"}
+            {myTeams.length === 1 ? t("dashboard", "myTeam", locale) : t("dashboard", "myTeams", locale)}
           </h2>
           {myTeams.map((team) => (
             <Card key={team.id}>
@@ -134,24 +131,22 @@ export default async function DashboardPage() {
                   </div>
                   {matchCounts[team.id] > 0 && (
                     <span className="text-xs text-primary font-medium">
-                      {matchCounts[team.id]} jogo
-                      {matchCounts[team.id] !== 1 ? "s" : ""} agendado
-                      {matchCounts[team.id] !== 1 ? "s" : ""}
+                      {tFn("dashboard", "matchesScheduled", locale)(matchCounts[team.id])}
                     </span>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Link href={`/dashboard/${team.id}`}>
-                    <Button size="sm">Editar Equipa</Button>
+                    <Button size="sm">{t("dashboard", "editTeam", locale)}</Button>
                   </Link>
                   <Link href={`/dashboard/${team.id}/jogos`}>
                     <Button variant="outline" size="sm">
-                      Calendário de Jogos
+                      {t("dashboard", "matchCalendar", locale)}
                     </Button>
                   </Link>
                   <Link href={`/equipas/${team.slug}`}>
                     <Button variant="ghost" size="sm">
-                      Ver Página Pública
+                      {t("dashboard", "viewPublicPage", locale)}
                     </Button>
                   </Link>
                 </div>

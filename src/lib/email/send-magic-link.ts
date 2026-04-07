@@ -24,22 +24,29 @@ const emailStrings: Record<
     subject: "Aceda à sua equipa — Veteranos Futebol",
     intro: "Clique no link abaixo para aceder à sua equipa:",
     button: "Aceder à Minha Equipa",
-    expiry: "Este link expira em 24 horas.",
+    expiry: "Este link expira em 30 minutos.",
     ignore: "Se não solicitou este acesso, ignore este email.",
   },
   br: {
     subject: "Acesse sua equipe — Veteranos Futebol",
     intro: "Clique no link abaixo para acessar sua equipe:",
     button: "Acessar Minha Equipe",
-    expiry: "Este link expira em 24 horas.",
+    expiry: "Este link expira em 30 minutos.",
     ignore: "Se não solicitou este acesso, ignore este email.",
   },
   es: {
     subject: "Acceda a su equipo — Veteranos Fútbol",
     intro: "Haga clic en el enlace de abajo para acceder a su equipo:",
     button: "Acceder a Mi Equipo",
-    expiry: "Este enlace expira en 24 horas.",
+    expiry: "Este enlace expira en 30 minutos.",
     ignore: "Si no solicitó este acceso, ignore este email.",
+  },
+  en: {
+    subject: "Access your team — Veteranos Football",
+    intro: "Click the link below to access your team:",
+    button: "Access My Team",
+    expiry: "This link expires in 30 minutes.",
+    ignore: "If you didn't request this access, please ignore this email.",
   },
 };
 

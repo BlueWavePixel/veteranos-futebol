@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLogoUrl } from "@/lib/logo";
+import { t, type Locale } from "@/lib/i18n/translations";
+import { getLocale } from "@/lib/i18n/get-locale";
 import type { Team } from "@/lib/db/schema";
 
 type TeamCardProps = {
@@ -18,7 +20,9 @@ type TeamCardProps = {
   >;
 };
 
-export function TeamCard({ team }: TeamCardProps) {
+export async function TeamCard({ team }: TeamCardProps) {
+  const locale = await getLocale();
+
   return (
     <Link href={`/equipas/${team.slug}`}>
       <Card className="hover:border-primary/50 transition-colors h-full">
@@ -26,7 +30,7 @@ export function TeamCard({ team }: TeamCardProps) {
           {team.logoUrl ? (
             <img
               src={getLogoUrl(team.logoUrl)!}
-              alt={`Logotipo ${team.name}`}
+              alt={`${team.name}`}
               className="w-16 h-16 rounded-md object-contain bg-muted"
               loading="lazy"
             />
@@ -48,7 +52,7 @@ export function TeamCard({ team }: TeamCardProps) {
               )}
               {team.dinnerThirdParty && (
                 <Badge variant="outline" className="text-xs">
-                  Jantar 3&ordf; Parte
+                  {t("teamsDirectory", "dinnerBadge", locale)}
                 </Badge>
               )}
             </div>

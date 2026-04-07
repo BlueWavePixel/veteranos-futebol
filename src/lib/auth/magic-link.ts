@@ -1,9 +1,9 @@
 import { randomBytes, createHash } from "crypto";
 import { db } from "@/lib/db";
 import { authTokens, teams, admins } from "@/lib/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, lt } from "drizzle-orm";
 
-const TOKEN_EXPIRY_HOURS = 24;
+const TOKEN_EXPIRY_MINUTES = 30;
 
 export function generateToken(): string {
   return randomBytes(32).toString("hex");
@@ -36,7 +36,7 @@ export async function createMagicLink(email: string): Promise<string | null> {
 
   const token = generateToken();
   const hash = createTokenHash(token);
-  const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
 
   await db.insert(authTokens).values({
     email: normalizedEmail,
@@ -53,9 +53,22 @@ export async function createMagicLink(email: string): Promise<string | null> {
 // pre-fetch links automatically, consuming the token before the user clicks
 const GRACE_PERIOD_MS = 15 * 60 * 1000;
 
+/** Opportunistic cleanup — 10% chance of running per verification call */
+async function maybeCleanupExpiredTokens(): Promise<void> {
+  if (Math.random() > 0.1) return;
+  try {
+    await db.delete(authTokens).where(lt(authTokens.expiresAt, new Date()));
+  } catch (error) {
+    console.error("Token cleanup failed:", error);
+  }
+}
+
 export async function verifyMagicLink(
   token: string
 ): Promise<{ email: string } | null> {
+  // Opportunistic cleanup
+  await maybeCleanupExpiredTokens();
+
   const hash = createTokenHash(token);
 
   const [record] = await db

@@ -6,6 +6,7 @@ const labels: Record<string, string> = {
   pt: "PT",
   br: "BR",
   es: "ES",
+  en: "EN",
 };
 
 export function LocaleSwitcher({ current }: { current: string }) {

@@ -1,4 +1,7 @@
 import { requireAdmin } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { duplicatePairs } from "@/lib/db/schema";
+import { eq, count } from "drizzle-orm";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +12,12 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const admin = await requireAdmin();
+
+  // Count pending duplicate pairs for badge
+  const [{ pendingCount }] = await db
+    .select({ pendingCount: count() })
+    .from(duplicatePairs)
+    .where(eq(duplicatePairs.status, "pending"));
 
   return (
     <div>
@@ -26,6 +35,17 @@ export default async function AdminLayout({
             className="text-sm text-muted-foreground hover:text-foreground"
           >
             Sugestões
+          </Link>
+          <Link
+            href="/admin/duplicados"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+          >
+            Duplicados
+            {pendingCount > 0 && (
+              <span className="inline-flex items-center justify-center rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white min-w-[18px]">
+                {pendingCount}
+              </span>
+            )}
           </Link>
           {admin.role === "super_admin" && (
             <Link

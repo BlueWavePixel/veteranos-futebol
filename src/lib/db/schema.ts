@@ -8,6 +8,9 @@ import {
   jsonb,
   pgEnum,
   integer,
+  real,
+  uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const adminRoleEnum = pgEnum("admin_role", [
@@ -138,6 +141,47 @@ export const suggestions = pgTable("suggestions", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const securityLog = pgTable("security_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventType: text("event_type").notNull(),
+  email: text("email"),
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const duplicatePairStatus = pgEnum("duplicate_pair_status", [
+  "pending",
+  "confirmed_duplicate",
+  "not_duplicate",
+  "merged",
+]);
+
+export const duplicatePairs = pgTable("duplicate_pairs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  teamAId: uuid("team_a_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  teamBId: uuid("team_b_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  similarityScore: real("similarity_score").notNull().default(0.5),
+  status: duplicatePairStatus("status").notNull().default("pending"),
+  resolvedBy: uuid("resolved_by").references(() => admins.id, {
+    onDelete: "set null",
+  }),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("duplicate_pairs_team_pair_idx").on(table.teamAId, table.teamBId),
+  index("duplicate_pairs_status_idx").on(table.status),
+]);
+
+export type DuplicatePair = typeof duplicatePairs.$inferSelect;
+export type NewDuplicatePair = typeof duplicatePairs.$inferInsert;
+
 export type Team = typeof teams.$inferSelect;
 export type NewTeam = typeof teams.$inferInsert;
 export type Admin = typeof admins.$inferSelect;
@@ -145,3 +189,4 @@ export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type Match = typeof matches.$inferSelect;
 export type NewMatch = typeof matches.$inferInsert;
 export type Suggestion = typeof suggestions.$inferSelect;
+export type SecurityLogEntry = typeof securityLog.$inferSelect;

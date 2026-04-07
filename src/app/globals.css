@@ -117,6 +117,31 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Marker cluster styles */
+.marker-cluster-small { background-color: rgba(22, 101, 52, 0.3); }
+.marker-cluster-small div { background-color: rgba(22, 101, 52, 0.6); }
+.marker-cluster-medium { background-color: rgba(234, 179, 8, 0.3); }
+.marker-cluster-medium div { background-color: rgba(234, 179, 8, 0.6); }
+.marker-cluster-large { background-color: rgba(220, 38, 38, 0.3); }
+.marker-cluster-large div { background-color: rgba(220, 38, 38, 0.6); }
+.marker-cluster div {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+  margin-top: 5px;
+  border-radius: 50%;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

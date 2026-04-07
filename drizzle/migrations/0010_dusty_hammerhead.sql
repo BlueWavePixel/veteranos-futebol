@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "duplicate_pairs_team_pair_idx" ON "duplicate_pairs" USING btree ("team_a_id","team_b_id");--> statement-breakpoint
+CREATE INDEX "duplicate_pairs_status_idx" ON "duplicate_pairs" USING btree ("status");
