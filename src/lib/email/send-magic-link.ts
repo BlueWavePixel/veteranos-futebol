@@ -41,6 +41,13 @@ const emailStrings: Record<
     expiry: "Este enlace expira en 30 minutos.",
     ignore: "Si no solicitó este acceso, ignore este email.",
   },
+  en: {
+    subject: "Access your team — Veteranos Football",
+    intro: "Click the link below to access your team:",
+    button: "Access My Team",
+    expiry: "This link expires in 30 minutes.",
+    ignore: "If you didn't request this access, please ignore this email.",
+  },
 };
 
 export async function sendMagicLinkEmail(
