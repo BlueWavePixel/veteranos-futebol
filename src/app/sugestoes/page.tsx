@@ -11,17 +11,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { t } from "@/lib/i18n/translations";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pendente", className: "bg-yellow-500/20 text-yellow-400" },
-  read: { label: "Lida", className: "bg-blue-500/20 text-blue-400" },
-  resolved: { label: "Resolvida", className: "bg-primary/20 text-primary" },
-};
-
 export default async function SugestoesPage() {
   const email = await getCoordinatorEmail();
+  const locale = await getLocale();
+
+  const statusLabels: Record<string, { label: string; className: string }> = {
+    pending: { label: t("suggestions", "statusPending", locale), className: "bg-yellow-500/20 text-yellow-400" },
+    read: { label: t("suggestions", "statusRead", locale), className: "bg-blue-500/20 text-blue-400" },
+    resolved: { label: t("suggestions", "statusResolved", locale), className: "bg-primary/20 text-primary" },
+  };
 
   // Buscar sugestões do coordenador (se autenticado)
   const mySuggestions = email
@@ -82,25 +85,23 @@ export default async function SugestoesPage() {
     redirect("/sugestoes?enviado=1");
   }
 
-  const enviado =
-    typeof globalThis !== "undefined" ? false : false; // handled client-side
+  const dateLocale = locale === "en" ? "en-GB" : locale === "es" ? "es-ES" : locale === "br" ? "pt-BR" : "pt-PT";
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-2">Ideias e Sugestões</h1>
+      <h1 className="text-3xl font-bold mb-2">{t("suggestions", "title", locale)}</h1>
       <p className="text-muted-foreground mb-8">
-        Tem uma ideia para melhorar a plataforma ou precisa de ajuda? Envie a
-        sua sugestão e a equipa de moderação responderá assim que possível.
+        {t("suggestions", "subtitle", locale)}
       </p>
 
       {!email ? (
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-muted-foreground mb-4">
-              Precisa de estar autenticado para enviar sugestões.
+              {t("suggestions", "mustBeAuthenticated", locale)}
             </p>
             <Link href="/login">
-              <Button>Iniciar Sessão</Button>
+              <Button>{t("common", "signIn", locale)}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -108,40 +109,40 @@ export default async function SugestoesPage() {
         <>
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-lg">Nova Sugestão</CardTitle>
+              <CardTitle className="text-lg">{t("suggestions", "newSuggestion", locale)}</CardTitle>
             </CardHeader>
             <CardContent>
               <form action={submitSuggestion} className="space-y-4">
                 <div>
-                  <Label htmlFor="authorName">O seu nome *</Label>
+                  <Label htmlFor="authorName">{t("suggestions", "yourName", locale)}</Label>
                   <Input
                     id="authorName"
                     name="authorName"
                     required
-                    placeholder="Nome do coordenador"
+                    placeholder={t("suggestions", "namePlaceholder", locale)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="subject">Assunto *</Label>
+                  <Label htmlFor="subject">{t("suggestions", "subject", locale)}</Label>
                   <Input
                     id="subject"
                     name="subject"
                     required
-                    placeholder="Ex: Ideia para nova funcionalidade, Dúvida sobre..."
+                    placeholder={t("suggestions", "subjectPlaceholder", locale)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="message">Mensagem *</Label>
+                  <Label htmlFor="message">{t("suggestions", "message", locale)}</Label>
                   <Textarea
                     id="message"
                     name="message"
                     required
                     rows={5}
-                    placeholder="Descreva a sua ideia, sugestão ou dúvida..."
+                    placeholder={t("suggestions", "messagePlaceholder", locale)}
                   />
                 </div>
                 <Button type="submit" className="w-full">
-                  Enviar Sugestão
+                  {t("suggestions", "sendButton", locale)}
                 </Button>
               </form>
             </CardContent>
@@ -150,7 +151,7 @@ export default async function SugestoesPage() {
           {mySuggestions.length > 0 && (
             <div>
               <h2 className="text-lg font-semibold mb-4">
-                As minhas sugestões ({mySuggestions.length})
+                {t("suggestions", "mySuggestions", locale)} ({mySuggestions.length})
               </h2>
               <div className="space-y-3">
                 {mySuggestions.map((s) => (
@@ -163,17 +164,17 @@ export default async function SugestoesPage() {
                             <Badge
                               variant="secondary"
                               className={
-                                STATUS_LABELS[s.status]?.className || ""
+                                statusLabels[s.status]?.className || ""
                               }
                             >
-                              {STATUS_LABELS[s.status]?.label || s.status}
+                              {statusLabels[s.status]?.label || s.status}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {s.message}
                           </p>
                           <p className="text-xs text-muted-foreground mt-2">
-                            {new Date(s.createdAt).toLocaleDateString("pt-PT", {
+                            {new Date(s.createdAt).toLocaleDateString(dateLocale, {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
@@ -186,7 +187,7 @@ export default async function SugestoesPage() {
                       {s.adminReply && (
                         <div className="mt-3 rounded-lg bg-muted/50 p-3 text-sm">
                           <p className="text-xs font-medium text-primary mb-1">
-                            Resposta da moderação:
+                            {t("suggestions", "adminReply", locale)}
                           </p>
                           <p>{s.adminReply}</p>
                         </div>

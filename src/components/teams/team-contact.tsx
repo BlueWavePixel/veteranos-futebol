@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { t } from "@/lib/i18n/translations";
+import { getLocale } from "@/lib/i18n/get-locale";
 import type { Team } from "@/lib/db/schema";
 
 type Props = {
@@ -15,22 +17,24 @@ type Props = {
   isAuthenticated: boolean;
 };
 
-export function TeamContact({ team, isAuthenticated }: Props) {
+export async function TeamContact({ team, isAuthenticated }: Props) {
+  const locale = await getLocale();
+
   if (!isAuthenticated) {
     return (
       <Card className="border-dashed">
         <CardContent className="p-6 text-center">
           <p className="text-muted-foreground mb-4">
-            Regista a tua equipa para ver os contactos
+            {t("teamDetail", "registerToSeeContacts", locale)}
           </p>
           <div className="flex gap-2 justify-center">
             <Link href="/registar">
               <Button variant="outline" size="sm">
-                Registar Equipa
+                {t("header", "registerTeam", locale)}
               </Button>
             </Link>
             <Link href="/login">
-              <Button size="sm">Já tenho equipa</Button>
+              <Button size="sm">{t("teamDetail", "alreadyHaveTeam", locale)}</Button>
             </Link>
           </div>
         </CardContent>
@@ -41,11 +45,11 @@ export function TeamContact({ team, isAuthenticated }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Contactos</CardTitle>
+        <CardTitle className="text-lg">{t("teamDetail", "contacts", locale)}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
-          <p className="text-sm text-muted-foreground">Responsável</p>
+          <p className="text-sm text-muted-foreground">{t("form", "coordinator", locale)}</p>
           <p className="font-medium">{team.coordinatorName}</p>
           {team.coordinatorPhone && (
             <a
@@ -59,7 +63,7 @@ export function TeamContact({ team, isAuthenticated }: Props) {
         {team.coordinatorAltName && (
           <div>
             <p className="text-sm text-muted-foreground">
-              Responsável Alternativo
+              {t("teamDetail", "altCoordinator", locale)}
             </p>
             <p className="font-medium">{team.coordinatorAltName}</p>
             {team.coordinatorAltPhone && (
@@ -73,7 +77,7 @@ export function TeamContact({ team, isAuthenticated }: Props) {
           </div>
         )}
         <div>
-          <p className="text-sm text-muted-foreground">Email</p>
+          <p className="text-sm text-muted-foreground">{t("common", "email", locale)}</p>
           <a
             href={`mailto:${team.coordinatorEmail}`}
             className="text-primary hover:underline text-sm"
