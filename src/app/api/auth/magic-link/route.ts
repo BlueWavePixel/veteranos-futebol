@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMagicLink } from "@/lib/auth/magic-link";
 import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
-import { checkRateLimit } from "@/lib/security/rate-limiter";
+import { checkRateLimit, checkGlobalAuthLimit } from "@/lib/security/rate-limiter";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { logSecurityEvent, getClientIp } from "@/lib/security/audit";
 import type { Locale } from "@/lib/i18n/translations";
@@ -18,6 +18,21 @@ const FIFTEEN_MINUTES = 15 * 60 * 1000;
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const userAgent = request.headers.get("user-agent") || undefined;
+
+  // Global auth rate limit: 100/IP/hour
+  const globalLimit = checkGlobalAuthLimit(ip);
+  if (!globalLimit.allowed) {
+    await logSecurityEvent({
+      eventType: "rate_limited",
+      ip,
+      userAgent,
+      details: { reason: "global_auth_limit" },
+    });
+    return NextResponse.json(
+      { error: "Demasiados pedidos. Tente mais tarde." },
+      { status: 429 }
+    );
+  }
 
   try {
     const body = await request.json();
@@ -44,7 +59,7 @@ export async function POST(request: NextRequest) {
     const ipLimit = checkRateLimit(`magic-link:ip:${ip}`, 20, FIFTEEN_MINUTES);
     if (!ipLimit.allowed) {
       await logSecurityEvent({
-        eventType: "magic_link_rate_limited",
+        eventType: "rate_limited",
         email: email.trim(),
         ip,
         userAgent,
@@ -62,7 +77,7 @@ export async function POST(request: NextRequest) {
     );
     if (!emailLimit.allowed) {
       await logSecurityEvent({
-        eventType: "magic_link_rate_limited",
+        eventType: "rate_limited",
         email: normalizedEmail,
         ip,
         userAgent,
@@ -71,12 +86,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: genericMsg });
     }
 
-    // Verify Turnstile if token provided
-    if (turnstileToken) {
+    // Verify Turnstile — require if configured
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      if (!turnstileToken) {
+        await logSecurityEvent({
+          eventType: "captcha_failed",
+          email: normalizedEmail,
+          ip,
+          userAgent,
+          details: { reason: "missing_token" },
+        });
+        return NextResponse.json({ message: genericMsg });
+      }
       const valid = await verifyTurnstile(turnstileToken, ip);
       if (!valid) {
         await logSecurityEvent({
-          eventType: "magic_link_captcha_failed",
+          eventType: "captcha_failed",
           email: normalizedEmail,
           ip,
           userAgent,

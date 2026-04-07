@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { requireCoordinator } from "@/lib/auth/session";
 import { notFound, redirect } from "next/navigation";
 import { logAudit } from "@/lib/audit";
+import { getSessionCsrf, validateCsrf } from "@/lib/security/csrf";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getLocale } from "@/lib/i18n/get-locale";
@@ -27,8 +28,14 @@ export default async function DeletePage({ params }: Props) {
 
   if (!team) notFound();
 
-  async function deleteTeam() {
+  const csrf = await getSessionCsrf();
+
+  async function deleteTeam(formData: FormData) {
     "use server";
+
+    const csrfToken = formData.get("_csrf") as string;
+    const csrfValid = await validateCsrf(csrfToken);
+    if (!csrfValid) return;
 
     await db.delete(teams).where(eq(teams.id, teamId));
 
@@ -58,6 +65,7 @@ export default async function DeletePage({ params }: Props) {
             {t("deactivate", "rgpdNote", locale)}
           </p>
           <form action={deleteTeam}>
+            <input type="hidden" name="_csrf" value={csrf || ""} />
             <Button type="submit" variant="destructive" className="w-full">
               {t("deactivate", "deleteButton", locale)}
             </Button>

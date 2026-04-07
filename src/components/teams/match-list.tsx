@@ -10,6 +10,7 @@ type Props = {
   matches: Match[];
   teamId: string;
   deleteAction: (formData: FormData) => Promise<void>;
+  csrfToken?: string;
 };
 
 function getClientLocale(): Locale {
@@ -39,7 +40,7 @@ function formatTime(date: Date, dateLocale: string) {
   return d.toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" });
 }
 
-export function MatchList({ matches, teamId, deleteAction }: Props) {
+export function MatchList({ matches, teamId, deleteAction, csrfToken }: Props) {
   const locale = getClientLocale();
   const dateLocale = getDateLocale(locale);
 
@@ -104,6 +105,7 @@ export function MatchList({ matches, teamId, deleteAction }: Props) {
                 </Button>
               </Link>
               <form action={deleteAction}>
+                {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
                 <input type="hidden" name="matchId" value={match.id} />
                 <Button
                   type="submit"

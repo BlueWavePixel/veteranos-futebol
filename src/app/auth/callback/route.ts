@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { consumeCallbackToken } from "@/lib/auth/callback-token";
 import { signSessionJwt } from "@/lib/auth/session";
+import { generateCsrfToken } from "@/lib/security/csrf";
+import { logSecurityEvent, getClientIp } from "@/lib/security/audit";
 import { db } from "@/lib/db";
 import { admins } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -15,12 +17,17 @@ const authText: Record<string, string> = {
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("t");
 
+  const ip = getClientIp(request);
+  const userAgent = request.headers.get("user-agent") || undefined;
+
   if (!token) {
+    await logSecurityEvent({ eventType: "login_failed", ip, userAgent, details: { reason: "missing_callback_token" } });
     return NextResponse.redirect(new URL("/login?error=invalid", request.url));
   }
 
   const result = await consumeCallbackToken(token);
   if (!result) {
+    await logSecurityEvent({ eventType: "login_failed", ip, userAgent, details: { reason: "invalid_callback_token" } });
     return NextResponse.redirect(new URL("/login?error=expired", request.url));
   }
 
@@ -40,7 +47,10 @@ export async function GET(request: NextRequest) {
     .where(eq(admins.email, result.email));
 
   const role = admin ? admin.role : "coordinator";
-  const jwt = await signSessionJwt(result.email, role);
+  const csrf = generateCsrfToken();
+  const jwt = await signSessionJwt(result.email, role, csrf);
+
+  await logSecurityEvent({ eventType: "login_success", email: result.email, ip, userAgent });
 
   const response = new NextResponse(
     `<!DOCTYPE html>

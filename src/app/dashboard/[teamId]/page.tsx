@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { TeamForm } from "@/components/teams/team-form";
 import { extractTeamFields } from "@/lib/form-helpers";
 import { logAudit } from "@/lib/audit";
+import { getSessionCsrf, validateCsrf } from "@/lib/security/csrf";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
@@ -33,10 +34,18 @@ export default async function EditTeamPage({ params }: Props) {
 
   if (!team) notFound();
 
+  const csrf = await getSessionCsrf();
+
   async function updateTeam(
     formData: FormData
   ): Promise<{ error?: string; success?: boolean }> {
     "use server";
+
+    const csrfToken = formData.get("_csrf") as string;
+    const csrfValid = await validateCsrf(csrfToken);
+    if (!csrfValid) {
+      return { error: "Sessão inválida. Recarregue a página e tente novamente." };
+    }
 
     const fields = await extractTeamFields(formData);
 
@@ -82,6 +91,7 @@ export default async function EditTeamPage({ params }: Props) {
         defaultValues={team}
         submitLabel={t("common", "save", locale)}
         showRgpd={false}
+        csrfToken={csrf || undefined}
       />
     </div>
   );

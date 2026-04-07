@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireCoordinator } from "@/lib/auth/session";
+import { getSessionCsrf, validateCsrf } from "@/lib/security/csrf";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,8 +27,14 @@ export default async function ConsentPage() {
     redirect("/dashboard");
   }
 
-  async function acceptConsent() {
+  const csrf = await getSessionCsrf();
+
+  async function acceptConsent(formData: FormData) {
     "use server";
+
+    const csrfToken = formData.get("_csrf") as string;
+    const csrfValid = await validateCsrf(csrfToken);
+    if (!csrfValid) return;
 
     await db
       .update(teams)
@@ -65,6 +72,7 @@ export default async function ConsentPage() {
             <strong>{pendingTeams.map((tm) => tm.name).join(", ")}</strong>
           </p>
           <form action={acceptConsent}>
+            <input type="hidden" name="_csrf" value={csrf || ""} />
             <Button type="submit" className="w-full">
               {t("consent", "acceptButton", locale)}
             </Button>

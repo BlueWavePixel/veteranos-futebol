@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { requireCoordinator } from "@/lib/auth/session";
 import { notFound, redirect } from "next/navigation";
 import { logAudit } from "@/lib/audit";
+import { getSessionCsrf, validateCsrf } from "@/lib/security/csrf";
 import { MatchForm } from "@/components/teams/match-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,14 @@ export default async function EditMatchPage({ params }: Props) {
 
   if (!match) notFound();
 
+  const csrf = await getSessionCsrf();
+
   async function updateMatch(formData: FormData) {
     "use server";
+
+    const csrfToken = formData.get("_csrf") as string;
+    const csrfValid = await validateCsrf(csrfToken);
+    if (!csrfValid) return;
 
     const dateStr = formData.get("matchDate") as string;
     const timeStr = (formData.get("matchTime") as string) || "15:00";
@@ -89,7 +96,7 @@ export default async function EditMatchPage({ params }: Props) {
       <p className="text-muted-foreground mb-6">
         vs {match.opponent}
       </p>
-      <MatchForm action={updateMatch} defaultValues={match} />
+      <MatchForm action={updateMatch} defaultValues={match} csrfToken={csrf || undefined} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { eq, and, asc } from "drizzle-orm";
 import { requireCoordinator } from "@/lib/auth/session";
 import { notFound, redirect } from "next/navigation";
 import { logAudit } from "@/lib/audit";
+import { getSessionCsrf, validateCsrf } from "@/lib/security/csrf";
 import { MatchForm } from "@/components/teams/match-form";
 import { MatchList } from "@/components/teams/match-list";
 import Link from "next/link";
@@ -33,6 +34,8 @@ export default async function MatchesPage({ params }: Props) {
 
   if (!team) notFound();
 
+  const csrf = await getSessionCsrf();
+
   const teamMatches = await db
     .select()
     .from(matches)
@@ -47,6 +50,10 @@ export default async function MatchesPage({ params }: Props) {
 
   async function addMatch(formData: FormData) {
     "use server";
+
+    const csrfToken = formData.get("_csrf") as string;
+    const csrfValid = await validateCsrf(csrfToken);
+    if (!csrfValid) return;
 
     const dateStr = formData.get("matchDate") as string;
     const timeStr = (formData.get("matchTime") as string) || "15:00";
@@ -82,6 +89,10 @@ export default async function MatchesPage({ params }: Props) {
   async function deleteMatch(formData: FormData) {
     "use server";
 
+    const csrfToken = formData.get("_csrf") as string;
+    const csrfValid = await validateCsrf(csrfToken);
+    if (!csrfValid) return;
+
     const matchId = formData.get("matchId") as string;
 
     await db.delete(matches).where(
@@ -112,7 +123,7 @@ export default async function MatchesPage({ params }: Props) {
 
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-4">{t("matches", "addMatch", locale)}</h2>
-        <MatchForm action={addMatch} />
+        <MatchForm action={addMatch} csrfToken={csrf || undefined} />
       </div>
 
       {upcoming.length > 0 && (
@@ -120,7 +131,7 @@ export default async function MatchesPage({ params }: Props) {
           <h2 className="text-lg font-semibold mb-4">
             {t("matches", "upcoming", locale)} ({upcoming.length})
           </h2>
-          <MatchList matches={upcoming} teamId={teamId} deleteAction={deleteMatch} />
+          <MatchList matches={upcoming} teamId={teamId} deleteAction={deleteMatch} csrfToken={csrf || undefined} />
         </div>
       )}
 
@@ -129,7 +140,7 @@ export default async function MatchesPage({ params }: Props) {
           <h2 className="text-lg font-semibold mb-4">
             {t("matches", "past", locale)} ({past.length})
           </h2>
-          <MatchList matches={past} teamId={teamId} deleteAction={deleteMatch} />
+          <MatchList matches={past} teamId={teamId} deleteAction={deleteMatch} csrfToken={csrf || undefined} />
         </div>
       )}
 

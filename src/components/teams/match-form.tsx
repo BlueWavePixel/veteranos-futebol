@@ -11,6 +11,7 @@ import type { Match } from "@/lib/db/schema";
 type Props = {
   action: (formData: FormData) => Promise<void>;
   defaultValues?: Match;
+  csrfToken?: string;
 };
 
 function getClientLocale(): Locale {
@@ -21,7 +22,7 @@ function getClientLocale(): Locale {
   return "pt";
 }
 
-export function MatchForm({ action, defaultValues }: Props) {
+export function MatchForm({ action, defaultValues, csrfToken }: Props) {
   const locale = getClientLocale();
   const defaultDate = defaultValues
     ? new Date(defaultValues.matchDate).toISOString().split("T")[0]
@@ -32,6 +33,7 @@ export function MatchForm({ action, defaultValues }: Props) {
 
   return (
     <form action={action} className="space-y-4">
+      {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="opponent">{t("matches", "opponent", locale)} *</Label>

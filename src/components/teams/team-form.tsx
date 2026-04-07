@@ -27,6 +27,7 @@ type TeamFormProps = {
   submitLabel?: string;
   showRgpd?: boolean;
   turnstileSiteKey?: string;
+  csrfToken?: string;
 };
 
 function getClientLocale(): Locale {
@@ -43,6 +44,7 @@ export function TeamForm({
   submitLabel,
   showRgpd = true,
   turnstileSiteKey,
+  csrfToken,
 }: TeamFormProps) {
   const [rgpdConsent, setRgpdConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +71,7 @@ export function TeamForm({
 
   return (
     <form action={handleSubmit} className="space-y-6">
+      {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
       {error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           {error}

@@ -37,18 +37,28 @@ async function registerTeam(
     return { error: "É necessário aceitar a Política de Privacidade." };
   }
 
-  // Verify Turnstile if token provided
+  // Verify Turnstile — require if configured
   const turnstileResponse = formData.get("cf-turnstile-response") as string;
-  if (turnstileResponse) {
-    const headerStore = await headers();
-    const ip =
-      headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      headerStore.get("x-real-ip") ||
-      "unknown";
+  const headerStore = await headers();
+  const ip =
+    headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    headerStore.get("x-real-ip") ||
+    "unknown";
+
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    if (!turnstileResponse) {
+      await logSecurityEvent({
+        eventType: "captcha_failed",
+        email: coordinatorEmail,
+        ip,
+        details: { reason: "missing_token" },
+      });
+      return { error: "Verificação de segurança falhou. Tente novamente." };
+    }
     const valid = await verifyTurnstile(turnstileResponse, ip);
     if (!valid) {
       await logSecurityEvent({
-        eventType: "registration_captcha_failed",
+        eventType: "captcha_failed",
         email: coordinatorEmail,
         ip,
       });

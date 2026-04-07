@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { suggestions, teams } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { getCoordinatorEmail } from "@/lib/auth/session";
+import { getSessionCsrf, validateCsrf } from "@/lib/security/csrf";
 import { redirect } from "next/navigation";
 import { notifyAdminsSuggestion } from "@/lib/email/send-notification";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,8 +36,14 @@ export default async function SugestoesPage() {
         .orderBy(desc(suggestions.createdAt))
     : [];
 
+  const csrf = await getSessionCsrf();
+
   async function submitSuggestion(formData: FormData) {
     "use server";
+
+    const csrfToken = formData.get("_csrf") as string;
+    const csrfValid = await validateCsrf(csrfToken);
+    if (!csrfValid) return;
 
     const authorEmail = await getCoordinatorEmail();
     if (!authorEmail) redirect("/login");
@@ -113,6 +120,7 @@ export default async function SugestoesPage() {
             </CardHeader>
             <CardContent>
               <form action={submitSuggestion} className="space-y-4">
+                <input type="hidden" name="_csrf" value={csrf || ""} />
                 <div>
                   <Label htmlFor="authorName">{t("suggestions", "yourName", locale)}</Label>
                   <Input

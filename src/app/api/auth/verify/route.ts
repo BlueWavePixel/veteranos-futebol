@@ -1,14 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyMagicLink } from "@/lib/auth/magic-link";
 import { createCallbackToken } from "@/lib/auth/callback-token";
+import { logSecurityEvent, getClientIp } from "@/lib/security/audit";
+import { checkGlobalAuthLimit } from "@/lib/security/rate-limiter";
 import { db } from "@/lib/db";
 import { teams, admins } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
+  const ip = getClientIp(request);
+  const userAgent = request.headers.get("user-agent") || undefined;
+
+  // Global auth rate limit: 100/IP/hour
+  const globalLimit = checkGlobalAuthLimit(ip);
+  if (!globalLimit.allowed) {
+    await logSecurityEvent({ eventType: "rate_limited", ip, userAgent, details: { reason: "global_auth_limit" } });
+    return NextResponse.redirect(new URL("/login?error=rate_limited", request.url));
+  }
+
   const token = request.nextUrl.searchParams.get("token");
 
   if (!token) {
+    await logSecurityEvent({ eventType: "token_invalid", ip, userAgent, details: { reason: "missing_token" } });
     return NextResponse.redirect(new URL("/login?error=invalid", request.url));
   }
 
@@ -16,12 +29,16 @@ export async function GET(request: NextRequest) {
   try {
     result = await verifyMagicLink(token);
   } catch {
+    await logSecurityEvent({ eventType: "token_expired", ip, userAgent, details: { reason: "verification_threw" } });
     return NextResponse.redirect(new URL("/login?error=expired", request.url));
   }
 
   if (!result) {
+    await logSecurityEvent({ eventType: "token_expired", ip, userAgent, details: { reason: "token_not_found_or_expired" } });
     return NextResponse.redirect(new URL("/login?error=expired", request.url));
   }
+
+  await logSecurityEvent({ eventType: "login_success", email: result.email, ip, userAgent });
 
   // Determine redirect destination
   let redirectTo = "/dashboard";

@@ -5,9 +5,9 @@ import { db } from "@/lib/db";
 import { admins } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "fallback-dev-secret"
-);
+const secret = process.env.AUTH_SECRET;
+if (!secret) throw new Error("AUTH_SECRET environment variable is required");
+const SECRET_KEY = new TextEncoder().encode(secret);
 const COOKIE_NAME = "session";
 const MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 

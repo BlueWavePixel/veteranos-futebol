@@ -40,6 +40,13 @@ export function checkRateLimit(
   return { allowed: false, remaining: 0, resetAt: entry.resetAt };
 }
 
+const ONE_HOUR = 60 * 60 * 1000;
+
+/** Global auth rate limit: 100 requests per IP per hour across all /api/auth/* routes */
+export function checkGlobalAuthLimit(ip: string): RateLimitResult {
+  return checkRateLimit(`global-auth:${ip}`, 100, ONE_HOUR);
+}
+
 /** Reset all rate limit entries — useful for testing */
 export function resetRateLimits(): void {
   store.clear();
