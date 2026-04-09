@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Relax rules for one-off maintenance scripts (raw SQL with untyped results)
+  {
+    files: ["src/scripts/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;

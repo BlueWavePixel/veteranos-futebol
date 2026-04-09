@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes, timingSafeEqual as cryptoTimingSafeEqual } from "crypto";
 import { getSessionPayload } from "@/lib/auth/session";
 
 /** Generate a random CSRF token (hex string) */
@@ -29,15 +29,5 @@ export async function validateCsrf(formToken: string): Promise<boolean> {
 }
 
 function timingSafeEqual(a: Buffer, b: Buffer): boolean {
-  // Use crypto.timingSafeEqual if available, otherwise manual
-  try {
-    const { timingSafeEqual: tse } = require("crypto");
-    return tse(a, b);
-  } catch {
-    let result = 0;
-    for (let i = 0; i < a.length; i++) {
-      result |= a[i] ^ b[i];
-    }
-    return result === 0;
-  }
+  return cryptoTimingSafeEqual(a, b);
 }

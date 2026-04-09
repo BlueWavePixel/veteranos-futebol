@@ -10,8 +10,6 @@ async function main() {
   await db.execute(sql`UPDATE teams SET duplicate_flag = NULL`);
   console.log("Flags anteriores limpas.\n");
 
-  let flagged = 0;
-
   // 1. Mesmo email com múltiplas equipas (só ativas)
   const byEmail = await db.execute(sql`
     SELECT coordinator_email, ARRAY_AGG(id) as ids

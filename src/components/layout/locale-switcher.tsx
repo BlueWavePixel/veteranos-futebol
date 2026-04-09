@@ -13,6 +13,7 @@ export function LocaleSwitcher({ current }: { current: string }) {
   const router = useRouter();
 
   function setLocale(locale: string) {
+    // eslint-disable-next-line react-hooks/immutability -- setting a cookie in a click handler is intentional
     document.cookie = `locale=${locale};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`;
     router.refresh();
   }

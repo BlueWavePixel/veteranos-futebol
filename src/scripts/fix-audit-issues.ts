@@ -49,7 +49,6 @@ async function main() {
   let altNameCleaned = 0;
   let emailFixed = 0;
   let coordNameFixed = 0;
-  let fieldNameFixed = 0;
 
   for (const t of teams) {
     const updates: string[] = [];

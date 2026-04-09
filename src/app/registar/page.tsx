@@ -14,8 +14,6 @@ import type { Locale } from "@/lib/i18n/translations";
 import { cookies, headers } from "next/headers";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { logSecurityEvent } from "@/lib/security/audit";
-import { TurnstileWidget } from "@/components/auth/turnstile-widget";
-
 async function registerTeam(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {

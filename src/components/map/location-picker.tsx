@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -91,7 +91,7 @@ export function LocationPicker({
   defaultLng,
   locale,
 }: LocationPickerProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [mapsUrl, setMapsUrl] = useState(defaultMapsUrl || "");
   const [position, setPosition] = useState<[number, number] | null>(
     defaultLat && defaultLng
@@ -101,13 +101,10 @@ export function LocationPicker({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "manual">("idle");
+  const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "manual">(
+    defaultLat && defaultLng ? "valid" : "idle",
+  );
   const searchTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => {
-    setMounted(true);
-    if (defaultLat && defaultLng) setStatus("valid");
-  }, [defaultLat, defaultLng]);
 
   // React to mapsUrl changes
   const handleUrlChange = useCallback((url: string) => {

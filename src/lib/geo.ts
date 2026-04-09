@@ -61,20 +61,6 @@ function extractUrlFromText(input: string): string | null {
   return urlMatch ? urlMatch[1] : null;
 }
 
-/**
- * Known Google Maps default center coordinates that appear in shell/ftid pages.
- * These are NOT real place coordinates and must be rejected.
- */
-const GOOGLE_DEFAULT_CENTERS = [
-  { lat: 38.54546715, lng: -9.0243072 },
-];
-
-function isGoogleDefault(lat: number, lng: number): boolean {
-  return GOOGLE_DEFAULT_CENTERS.some(
-    (d) => Math.abs(lat - d.lat) < 0.001 && Math.abs(lng - d.lng) < 0.001,
-  );
-}
-
 /** Fetch HTML from a URL and extract coordinates from page content.
  *  Only trusts @lat,lng and JSON patterns — NOT center= which is always
  *  a server-geolocation default (PT on EU servers, US on Vercel US-East). */

@@ -24,7 +24,7 @@ async function main() {
     return toDeactivate.length;
   }
 
-  async function deactivateByPhone(phone: string, keepCount: number = 1) {
+  async function deactivateByPhone(phone: string, keepCount: number = 1) { // eslint-disable-line @typescript-eslint/no-unused-vars
     const rows = await db.execute(sql`
       SELECT id, name, created_at FROM teams
       WHERE is_active = true AND coordinator_phone = ${phone}

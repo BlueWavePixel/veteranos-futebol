@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -175,12 +175,8 @@ export function PortugalMap({
   teams: TeamMapData[];
   locale?: Locale;
 }) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const filteredTeams = useMemo(
     () => teams.filter((t) => hasCoords(t) && matchesFilters(t, filters)),

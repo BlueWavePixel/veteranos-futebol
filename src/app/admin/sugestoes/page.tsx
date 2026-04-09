@@ -4,7 +4,6 @@ import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { notifyCoordinatorReply } from "@/lib/email/send-notification";
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 };
 
 export default async function AdminSugestoesPage() {
-  const admin = await requireAdmin();
+  await requireAdmin();
 
   const allSuggestions = await db
     .select({
@@ -36,10 +35,6 @@ export default async function AdminSugestoesPage() {
     .from(suggestions)
     .leftJoin(teams, eq(suggestions.teamId, teams.id))
     .orderBy(desc(suggestions.createdAt));
-
-  const pending = allSuggestions.filter(
-    (s) => s.suggestion.status === "pending"
-  ).length;
 
   async function updateSuggestion(formData: FormData) {
     "use server";

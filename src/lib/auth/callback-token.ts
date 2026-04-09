@@ -4,11 +4,15 @@ import { createHmac, randomBytes } from "crypto";
 // The callback page verifies the signature and sets the cookie.
 // This avoids setting cookies on a 302 redirect (which some browsers drop).
 
-const SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-dev-secret";
+function getSecret(): string {
+  const s = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!s) throw new Error("AUTH_SECRET or NEXTAUTH_SECRET must be set");
+  return s;
+}
 const TTL_MS = 60 * 1000; // 60 seconds
 
 function sign(payload: string): string {
-  return createHmac("sha256", SECRET).update(payload).digest("hex");
+  return createHmac("sha256", getSecret()).update(payload).digest("hex");
 }
 
 export async function createCallbackToken(

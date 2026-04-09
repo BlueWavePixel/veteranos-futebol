@@ -1,13 +1,12 @@
 import { db } from "@/lib/db";
 import { teams, duplicatePairs } from "@/lib/db/schema";
-import { eq, and, or, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   normalizeText,
   normalizePhone,
   levenshtein,
-  haversineDistance,
 } from "@/lib/duplicates/detect";
-import type { Team, NewDuplicatePair } from "@/lib/db/schema";
+import type { NewDuplicatePair } from "@/lib/db/schema";
 
 /**
  * Recalcula os pares de duplicados usando a tabela duplicate_pairs.

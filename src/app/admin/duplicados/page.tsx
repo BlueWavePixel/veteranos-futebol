@@ -1,17 +1,17 @@
 import { db } from "@/lib/db";
-import { duplicatePairs, teams, admins } from "@/lib/db/schema";
+import { duplicatePairs, teams } from "@/lib/db/schema";
 import { eq, desc, inArray, count } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { mergeTeams } from "@/lib/duplicates/merge";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DuplicateCompare } from "@/components/admin/duplicate-compare";
-import type { Team, DuplicatePair } from "@/lib/db/schema";
+import type { Team } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
 export default async function DuplicadosPage() {
-  const admin = await requireAdmin();
+  await requireAdmin();
 
   // Server actions
   async function resolveNotDuplicate(formData: FormData) {

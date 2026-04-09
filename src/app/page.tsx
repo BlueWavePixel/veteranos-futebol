@@ -94,7 +94,6 @@ export default async function HomePage() {
               const parts = hint.split(suggestionsWord);
               return parts.map((part, i, arr) =>
                 i < arr.length - 1 ? (
-                  // eslint-disable-next-line react/no-array-index-key
                   <span key={i}>
                     {part}
                     <a href="/sugestoes" className="text-primary hover:underline">
@@ -102,7 +101,6 @@ export default async function HomePage() {
                     </a>
                   </span>
                 ) : (
-                  // eslint-disable-next-line react/no-array-index-key
                   <span key={i}>{part}</span>
                 )
               );

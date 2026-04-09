@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLogoUrl } from "@/lib/logo";
-import { t, type Locale } from "@/lib/i18n/translations";
+import { t } from "@/lib/i18n/translations";
 import { getLocale } from "@/lib/i18n/get-locale";
 import type { Team } from "@/lib/db/schema";
 

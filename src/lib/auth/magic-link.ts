@@ -1,7 +1,7 @@
 import { randomBytes, createHash } from "crypto";
 import { db } from "@/lib/db";
 import { authTokens, teams, admins } from "@/lib/db/schema";
-import { eq, and, isNull, lt } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 
 const TOKEN_EXPIRY_MINUTES = 30;
 
