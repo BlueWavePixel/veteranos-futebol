@@ -1,6 +1,14 @@
 import { extractCoordinates } from "@/lib/geo";
 
-export async function extractTeamFields(formData: FormData) {
+/**
+ * Extract team fields from form data.
+ * @param existingCoords — pass current lat/lng when updating, so they're
+ *   preserved if the new mapsUrl can't be resolved. Omit on registration.
+ */
+export async function extractTeamFields(
+  formData: FormData,
+  existingCoords?: { latitude: string | null; longitude: string | null },
+) {
   let mapsUrl = (formData.get("mapsUrl") as string)?.trim() || null;
   const coords = await extractCoordinates(mapsUrl);
 
@@ -8,6 +16,15 @@ export async function extractTeamFields(formData: FormData) {
   if (mapsUrl && coords && /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/.test(mapsUrl)) {
     mapsUrl = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
   }
+
+  // On update: if extraction failed but we had coords before, keep them
+  let latitude = coords?.latitude?.toString() || null;
+  let longitude = coords?.longitude?.toString() || null;
+  if (!latitude && existingCoords?.latitude) {
+    latitude = existingCoords.latitude;
+    longitude = existingCoords.longitude;
+  }
+
   const foundedYear = formData.get("foundedYear") as string;
   const playerCount = formData.get("playerCount") as string;
   const concelho = ((formData.get("concelho") as string) || "").trim();
@@ -44,8 +61,8 @@ export async function extractTeamFields(formData: FormData) {
     concelho,
     distrito,
     mapsUrl,
-    latitude: coords?.latitude?.toString() || null,
-    longitude: coords?.longitude?.toString() || null,
+    latitude,
+    longitude,
     // Other fields
     foundedYear: foundedYear ? parseInt(foundedYear, 10) : null,
     playerCount: playerCount ? parseInt(playerCount, 10) : null,

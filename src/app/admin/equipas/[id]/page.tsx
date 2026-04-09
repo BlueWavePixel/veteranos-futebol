@@ -36,7 +36,10 @@ export default async function AdminEditTeamPage({ params }: Props) {
   ): Promise<{ error?: string; success?: boolean }> {
     "use server";
 
-    const fields = await extractTeamFields(formData);
+    const fields = await extractTeamFields(formData, {
+      latitude: team.latitude,
+      longitude: team.longitude,
+    });
     const coordinatorEmail = (
       (formData.get("coordinatorEmail") as string) || ""
     )

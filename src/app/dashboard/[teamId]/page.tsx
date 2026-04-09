@@ -47,7 +47,10 @@ export default async function EditTeamPage({ params }: Props) {
       return { error: "Sessão inválida. Recarregue a página e tente novamente." };
     }
 
-    const fields = await extractTeamFields(formData);
+    const fields = await extractTeamFields(formData, {
+      latitude: team.latitude,
+      longitude: team.longitude,
+    });
 
     await db
       .update(teams)
