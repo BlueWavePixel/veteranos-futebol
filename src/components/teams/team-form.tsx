@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,11 @@ import { ImageUpload } from "@/components/teams/image-upload";
 import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { t, type Locale } from "@/lib/i18n/translations";
 import type { Team } from "@/lib/db/schema";
+
+const LocationPicker = dynamic(
+  () => import("@/components/map/location-picker").then((m) => m.LocationPicker),
+  { ssr: false, loading: () => <div className="w-full h-[300px] bg-muted rounded-lg animate-pulse" /> },
+);
 
 type TeamFormProps = {
   action: (
@@ -426,19 +432,12 @@ export function TeamForm({
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="mapsUrl">{t("form", "mapsLink", locale)}</Label>
-          <Input
-            id="mapsUrl"
-            name="mapsUrl"
-            type="text"
-            placeholder="https://maps.google.com/..."
-            defaultValue={defaultValues?.mapsUrl || ""}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            {t("form", "mapsHintShort", locale)}
-          </p>
-        </div>
+        <LocationPicker
+          defaultMapsUrl={defaultValues?.mapsUrl}
+          defaultLat={defaultValues?.latitude}
+          defaultLng={defaultValues?.longitude}
+          locale={locale}
+        />
       </fieldset>
 
       {/* Redes Sociais e Horário */}

@@ -10,17 +10,27 @@ export async function extractTeamFields(
   existingCoords?: { latitude: string | null; longitude: string | null },
 ) {
   let mapsUrl = (formData.get("mapsUrl") as string)?.trim() || null;
-  const coords = await extractCoordinates(mapsUrl);
 
   // If user entered raw coordinates, convert to a Google Maps link
+  const coords = await extractCoordinates(mapsUrl);
   if (mapsUrl && coords && /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/.test(mapsUrl)) {
     mapsUrl = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
   }
 
-  // On update: if extraction failed but we had coords before, keep them
-  let latitude = coords?.latitude?.toString() || null;
-  let longitude = coords?.longitude?.toString() || null;
-  if (!latitude && existingCoords?.latitude) {
+  // Priority: 1) picker coords (from map click/search), 2) URL extraction, 3) existing coords
+  const pickerLat = (formData.get("_pickerLat") as string)?.trim() || null;
+  const pickerLng = (formData.get("_pickerLng") as string)?.trim() || null;
+
+  let latitude: string | null = null;
+  let longitude: string | null = null;
+
+  if (pickerLat && pickerLng) {
+    latitude = pickerLat;
+    longitude = pickerLng;
+  } else if (coords) {
+    latitude = coords.latitude.toString();
+    longitude = coords.longitude.toString();
+  } else if (existingCoords?.latitude) {
     latitude = existingCoords.latitude;
     longitude = existingCoords.longitude;
   }
