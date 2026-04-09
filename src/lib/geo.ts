@@ -29,14 +29,6 @@ function extractFromFullUrl(url: string): Coordinates | null {
     if (isValidCoords(lat, lng)) return { latitude: lat, longitude: lng };
   }
 
-  // Try center=lat%2Clng format (ftid redirect pages)
-  const centerMatch = url.match(/center=(-?\d+\.?\d*)%2C(-?\d+\.?\d*)/);
-  if (centerMatch) {
-    const lat = parseFloat(centerMatch[1]);
-    const lng = parseFloat(centerMatch[2]);
-    if (isValidCoords(lat, lng)) return { latitude: lat, longitude: lng };
-  }
-
   // Try ll=lat,lng format
   const llMatch = url.match(/[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
   if (llMatch) {
@@ -83,7 +75,9 @@ function isGoogleDefault(lat: number, lng: number): boolean {
   );
 }
 
-/** Fetch HTML from a URL and extract coordinates from page content */
+/** Fetch HTML from a URL and extract coordinates from page content.
+ *  Only trusts @lat,lng and JSON patterns — NOT center= which is always
+ *  a server-geolocation default (PT on EU servers, US on Vercel US-East). */
 async function extractCoordsFromHtml(url: string): Promise<Coordinates | null> {
   try {
     const response = await fetch(url, {
@@ -93,35 +87,26 @@ async function extractCoordsFromHtml(url: string): Promise<Coordinates | null> {
     });
     const html = await response.text();
 
-    // Try @lat,lng in the HTML (most reliable)
+    // Try @lat,lng in the HTML (most reliable — only present in real place pages)
     const atMatch = html.match(/@(-?\d+\.\d{4,}),(-?\d+\.\d{4,})/);
     if (atMatch) {
       const lat = parseFloat(atMatch[1]);
       const lng = parseFloat(atMatch[2]);
-      if (isValidCoords(lat, lng) && !isGoogleDefault(lat, lng)) {
-        return { latitude: lat, longitude: lng };
-      }
+      if (isValidCoords(lat, lng)) return { latitude: lat, longitude: lng };
     }
 
-    // Try "lat":XX.XXX,"lng":YY.YYY in JSON
+    // Try "lat":XX.XXX,"lng":YY.YYY in JSON embedded data
     const jsonMatch = html.match(/"lat"\s*:\s*(-?\d+\.\d{4,})\s*,\s*"lng"\s*:\s*(-?\d+\.\d{4,})/);
     if (jsonMatch) {
       const lat = parseFloat(jsonMatch[1]);
       const lng = parseFloat(jsonMatch[2]);
-      if (isValidCoords(lat, lng) && !isGoogleDefault(lat, lng)) {
-        return { latitude: lat, longitude: lng };
-      }
+      if (isValidCoords(lat, lng)) return { latitude: lat, longitude: lng };
     }
 
-    // Try center=lat%2Clng but ONLY if not the known Google default
-    const centerMatch = html.match(/center=(-?\d+\.\d{4,})%2C(-?\d+\.\d{4,})/);
-    if (centerMatch) {
-      const lat = parseFloat(centerMatch[1]);
-      const lng = parseFloat(centerMatch[2]);
-      if (isValidCoords(lat, lng) && !isGoogleDefault(lat, lng)) {
-        return { latitude: lat, longitude: lng };
-      }
-    }
+    // NOTE: center=lat%2Clng is intentionally NOT used here.
+    // It always contains the Google Maps default center based on server
+    // geolocation (e.g. Portugal on EU servers, Virginia on US servers),
+    // not the actual place coordinates.
   } catch {
     // Timeout or network error
   }
