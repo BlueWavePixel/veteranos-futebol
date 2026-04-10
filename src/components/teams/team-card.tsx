@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLogoUrl } from "@/lib/logo";
@@ -28,11 +29,12 @@ export async function TeamCard({ team }: TeamCardProps) {
       <Card className="hover:border-primary/50 transition-colors h-full">
         <CardContent className="p-4 flex gap-4">
           {team.logoUrl ? (
-            <img
+            <Image
               src={getLogoUrl(team.logoUrl)!}
-              alt={`${team.name}`}
+              alt={team.name}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-md object-contain bg-muted"
-              loading="lazy"
             />
           ) : (
             <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center text-2xl">

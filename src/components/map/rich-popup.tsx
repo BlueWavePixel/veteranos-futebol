@@ -49,7 +49,7 @@ export function RichPopupContent({
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
         {team.logoUrl && (
-          <img
+          <img // eslint-disable-line @next/next/no-img-element -- Leaflet popup
             src={team.logoUrl}
             alt=""
             style={{

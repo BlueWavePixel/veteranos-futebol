@@ -11,6 +11,7 @@ import { getLogoUrl } from "@/lib/logo";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { t, tObj } from "@/lib/i18n/translations";
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -63,13 +64,15 @@ export default async function TeamPage({ params }: Props) {
       {/* Header */}
       <div className="flex items-start gap-6 mb-8">
         {team.logoUrl ? (
-          <img
+          <Image
             src={
               team.logoUrl.startsWith("http") && !team.logoUrl.includes("drive.google.com")
                 ? team.logoUrl
                 : getLogoUrl(team.logoUrl)!
             }
-            alt={`${team.name}`}
+            alt={team.name}
+            width={96}
+            height={96}
             className="w-24 h-24 rounded-lg object-contain bg-muted"
           />
         ) : (
@@ -140,11 +143,13 @@ export default async function TeamPage({ params }: Props) {
 
       {/* Team Photo */}
       {team.teamPhotoUrl && (
-        <div className="mb-8">
-          <img
+        <div className="mb-8 relative w-full h-[400px]">
+          <Image
             src={team.teamPhotoUrl}
-            alt={`${team.name}`}
-            className="w-full max-h-[400px] object-cover rounded-lg"
+            alt={team.name}
+            fill
+            sizes="(max-width: 896px) 100vw, 896px"
+            className="object-cover rounded-lg"
           />
         </div>
       )}

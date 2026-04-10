@@ -71,7 +71,7 @@ export function ImageUpload({
       <input type="hidden" name={name} value={uploadedUrl} />
       <div className="mt-2 flex items-center gap-4">
         {preview ? (
-          <img
+          <img // eslint-disable-line @next/next/no-img-element -- blob: URL preview
             src={preview}
             alt="Preview"
             className="w-20 h-20 rounded-lg object-contain bg-muted"

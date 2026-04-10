@@ -3,6 +3,7 @@ import { teams, matches } from "@/lib/db/schema";
 import { eq, and, count, gte } from "drizzle-orm";
 import { requireCoordinator } from "@/lib/auth/session";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getLocale } from "@/lib/i18n/get-locale";
@@ -112,9 +113,11 @@ export default async function DashboardPage() {
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
                     {team.logoUrl ? (
-                      <img
+                      <Image
                         src={team.logoUrl}
                         alt={team.name}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-lg object-contain bg-muted"
                       />
                     ) : (
