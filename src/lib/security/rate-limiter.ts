@@ -1,9 +1,35 @@
+/**
+ * In-memory rate limiter.
+ *
+ * LIMITATION: In serverless environments each function instance has its own
+ * memory, so rate limits are per-instance, not global. With Vercel Fluid
+ * Compute, instances are reused across requests which provides partial
+ * coverage. For strict global rate limiting, migrate to Upstash Redis.
+ *
+ * For this project (low traffic, community site), in-memory is sufficient
+ * as a first line of defense. Cloudflare Turnstile provides the main
+ * anti-abuse protection on public forms.
+ */
+
 type RateLimitEntry = {
   count: number;
   resetAt: number;
 };
 
 const store = new Map<string, RateLimitEntry>();
+
+// Periodic cleanup to prevent memory leaks in long-lived instances
+const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+let lastCleanup = Date.now();
+
+function cleanupExpired() {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
+  lastCleanup = now;
+  for (const [key, entry] of store) {
+    if (now >= entry.resetAt) store.delete(key);
+  }
+}
 
 export type RateLimitResult = {
   allowed: boolean;
@@ -16,6 +42,7 @@ export function checkRateLimit(
   maxAttempts: number,
   windowMs: number
 ): RateLimitResult {
+  cleanupExpired();
   const now = Date.now();
   const entry = store.get(key);
 
