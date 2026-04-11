@@ -80,7 +80,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     `PRODID:-//Veteranos Futebol//${team.name}//PT`,
-    `X-WR-CALNAME:${escapeICS(team.name)} — Jogos`,
+    `X-WR-CALNAME:${escapeICS(team.name)}: Jogos`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     events,

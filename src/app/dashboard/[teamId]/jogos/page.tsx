@@ -113,7 +113,7 @@ export default async function MatchesPage({ params }: Props) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">{t("matches", "title", locale)} — {team.name}</h1>
+        <h1 className="text-3xl font-bold">{t("matches", "title", locale)} · {team.name}</h1>
         <Link href={`/dashboard/${teamId}`}>
           <Button variant="outline" size="sm">
             {t("common", "back", locale)}

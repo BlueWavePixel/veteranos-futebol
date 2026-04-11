@@ -237,7 +237,7 @@ export default async function AdminPage({
           {q && (
             <p className="text-sm text-muted-foreground mb-4">
               {totalFiltered} resultado{totalFiltered !== 1 ? "s" : ""} para &quot;{q}&quot;
-              {" — "}
+              {" · "}
               <Link href="/admin" className="text-primary hover:underline">
                 Limpar pesquisa
               </Link>

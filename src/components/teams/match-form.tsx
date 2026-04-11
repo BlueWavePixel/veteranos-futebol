@@ -110,7 +110,7 @@ export function MatchForm({ action, defaultValues, csrfToken }: Props) {
             name="goalsFor"
             type="number"
             min="0"
-            placeholder="—"
+            placeholder="-"
             defaultValue={defaultValues?.goalsFor ?? ""}
           />
         </div>
@@ -121,7 +121,7 @@ export function MatchForm({ action, defaultValues, csrfToken }: Props) {
             name="goalsAgainst"
             type="number"
             min="0"
-            placeholder="—"
+            placeholder="-"
             defaultValue={defaultValues?.goalsAgainst ?? ""}
           />
         </div>

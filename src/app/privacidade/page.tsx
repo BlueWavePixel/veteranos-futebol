@@ -31,11 +31,11 @@ export default async function PrivacidadePage() {
       <h2>{t("privacy", "s6Title", locale)}</h2>
       <p>{t("privacy", "s6Intro", locale)}</p>
       <ul>
-        <li><strong>{t("privacy", "s6Access", locale).split(" — ")[0]}</strong> — {t("privacy", "s6Access", locale).split(" — ")[1]}</li>
-        <li><strong>{t("privacy", "s6Rectification", locale).split(" — ")[0]}</strong> — {t("privacy", "s6Rectification", locale).split(" — ")[1]}</li>
-        <li><strong>{t("privacy", "s6Erasure", locale).split(" — ")[0]}</strong> — {t("privacy", "s6Erasure", locale).split(" — ")[1]}</li>
-        <li><strong>{t("privacy", "s6Portability", locale).split(" — ")[0]}</strong> — {t("privacy", "s6Portability", locale).split(" — ")[1]}</li>
-        <li><strong>{t("privacy", "s6Withdraw", locale).split(" — ")[0]}</strong> — {t("privacy", "s6Withdraw", locale).split(" — ")[1]}</li>
+        <li><strong>{t("privacy", "s6Access", locale).split(": ")[0]}</strong>: {t("privacy", "s6Access", locale).split(": ").slice(1).join(": ")}</li>
+        <li><strong>{t("privacy", "s6Rectification", locale).split(": ")[0]}</strong>: {t("privacy", "s6Rectification", locale).split(": ").slice(1).join(": ")}</li>
+        <li><strong>{t("privacy", "s6Erasure", locale).split(": ")[0]}</strong>: {t("privacy", "s6Erasure", locale).split(": ").slice(1).join(": ")}</li>
+        <li><strong>{t("privacy", "s6Portability", locale).split(": ")[0]}</strong>: {t("privacy", "s6Portability", locale).split(": ").slice(1).join(": ")}</li>
+        <li><strong>{t("privacy", "s6Withdraw", locale).split(": ")[0]}</strong>: {t("privacy", "s6Withdraw", locale).split(": ").slice(1).join(": ")}</li>
       </ul>
 
       <h2>{t("privacy", "s7Title", locale)}</h2>

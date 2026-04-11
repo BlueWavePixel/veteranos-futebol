@@ -67,7 +67,7 @@ export default async function TransferPage({ params }: Props) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-6">
-            <strong>{team.name}</strong> — {t("transfer", "desc", locale)}
+            <strong>{team.name}</strong>: {t("transfer", "desc", locale)}
           </p>
           <form action={transferTeam} className="space-y-4">
             <input type="hidden" name="_csrf" value={csrf || ""} />

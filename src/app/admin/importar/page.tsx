@@ -17,7 +17,7 @@ export default async function ImportPage() {
           <p className="text-sm text-muted-foreground mb-4">
             Esta funcionalidade importa os dados do ficheiro Excel existente
             para a base de dados. As equipas importadas ficam com RGPD pendente
-            — quando o coordenador aceder pela primeira vez, será pedido o
+            : quando o coordenador aceder pela primeira vez, será pedido o
             consentimento.
           </p>
           <p className="text-sm text-yellow-400 mb-6">

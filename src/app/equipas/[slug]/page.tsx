@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: team
-      ? `${team.name} — Veteranos Futebol`
+      ? `${team.name} · Veteranos Futebol`
       : "Team not found",
   };
 }
@@ -85,7 +85,7 @@ export default async function TeamPage({ params }: Props) {
           {(team.concelho || team.location) && (
             <p className="text-muted-foreground mt-1">
               {team.concelho}
-              {team.distrito && ` — ${team.distrito}`}
+              {team.distrito && `, ${team.distrito}`}
               {!team.concelho && team.location}
             </p>
           )}

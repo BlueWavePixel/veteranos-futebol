@@ -47,7 +47,7 @@ export async function notifyAdminsSuggestion(params: {
       subject: `Nova sugestão: ${params.subject}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #16a34a;">Nova Sugestão — Veteranos Futebol</h2>
+          <h2 style="color: #16a34a;">Nova Sugestão · Veteranos Futebol</h2>
           <table style="border-collapse: collapse; width: 100%; margin: 16px 0;">
             <tr>
               <td style="padding: 8px; font-weight: bold; color: #666;">De:</td>
@@ -96,7 +96,7 @@ export async function notifyCoordinatorReply(params: {
       subject: `Resposta à sua sugestão: ${params.subject}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #16a34a;">Veteranos Futebol — Resposta à Sugestão</h2>
+          <h2 style="color: #16a34a;">Veteranos Futebol · Resposta à Sugestão</h2>
           <p>Olá ${escHtml(params.coordinatorName)},</p>
           <p>A equipa de moderação respondeu à sua sugestão.</p>
 

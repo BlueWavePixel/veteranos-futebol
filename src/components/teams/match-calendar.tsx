@@ -184,7 +184,7 @@ function MatchRow({
         </div>
         {match.location && (
           <p className="text-xs text-muted-foreground mt-0.5">
-            {match.fieldName ? `${match.fieldName} — ` : ""}
+            {match.fieldName ? `${match.fieldName}: ` : ""}
             {match.location}
           </p>
         )}

@@ -50,26 +50,26 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent className="text-sm space-y-2 text-muted-foreground">
           <p>
-            <strong className="text-foreground">✏️ {t("dashboard", "helpEditTeam", locale)}</strong> —{" "}
+            <strong className="text-foreground">✏️ {t("dashboard", "helpEditTeam", locale)}</strong>:{" "}
             {t("dashboard", "helpEditTeamDesc", locale)}
           </p>
           <p>
-            <strong className="text-foreground">📅 {t("dashboard", "helpMatchCalendar", locale)}</strong>{" "}
-            — {t("dashboard", "helpMatchCalendarDesc", locale)}
+            <strong className="text-foreground">📅 {t("dashboard", "helpMatchCalendar", locale)}</strong>:{" "}
+            {t("dashboard", "helpMatchCalendarDesc", locale)}
           </p>
           <p>
-            <strong className="text-foreground">🔄 {t("dashboard", "helpTransfer", locale)}</strong>{" "}
-            — {t("dashboard", "helpTransferDesc", locale)}
+            <strong className="text-foreground">🔄 {t("dashboard", "helpTransfer", locale)}</strong>:{" "}
+            {t("dashboard", "helpTransferDesc", locale)}
           </p>
           <p>
-            <strong className="text-foreground">💡 {t("dashboard", "helpSuggestions", locale)}</strong> — {t("dashboard", "helpSuggestionsDesc", locale)}{" "}
+            <strong className="text-foreground">💡 {t("dashboard", "helpSuggestions", locale)}</strong>: {t("dashboard", "helpSuggestionsDesc", locale)}{" "}
             <Link href="/sugestoes" className="text-primary hover:underline">
               {t("dashboard", "helpSuggestionsLink", locale)}
             </Link>{" "}
             {t("dashboard", "helpSuggestionsLinkSuffix", locale)}
           </p>
           <p>
-            <strong className="text-foreground">🗑️ {t("dashboard", "helpDeleteTeam", locale)}</strong> —{" "}
+            <strong className="text-foreground">🗑️ {t("dashboard", "helpDeleteTeam", locale)}</strong>:{" "}
             {t("dashboard", "helpDeleteTeamDesc", locale)}
           </p>
         </CardContent>
