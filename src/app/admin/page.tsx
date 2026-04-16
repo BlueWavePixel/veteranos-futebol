@@ -164,6 +164,7 @@ export default async function AdminPage({
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (showDuplicates) params.set("duplicados", "1");
+    if (showInactive) params.set("inativos", "1");
     params.set("page", page.toString());
     return `/admin?${params.toString()}`;
   }
