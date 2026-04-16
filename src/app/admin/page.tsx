@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
 import { count, eq, ilike, or, asc, isNotNull, and, inArray } from "drizzle-orm";
-import { requireAdmin } from "@/lib/auth/session";
+import { requireAdmin, requireSuperAdmin } from "@/lib/auth/session";
+import { del } from "@vercel/blob";
 import { logAudit } from "@/lib/audit";
 import { recalculateDuplicateFlags } from "@/lib/recalculate-flags";
 import { redirect } from "next/navigation";
@@ -20,7 +21,7 @@ export default async function AdminPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string; duplicados?: string; inativos?: string }>;
 }) {
-  await requireAdmin();
+  const adminUser = await requireAdmin();
 
   async function deleteTeam(formData: FormData) {
     "use server";
@@ -85,6 +86,48 @@ export default async function AdminPage({
         actorType: adminUser.role === "super_admin" ? "super_admin" : "moderator",
         actorEmail: adminUser.email,
         action: "team_reactivated_by_admin",
+        teamId,
+      });
+    }
+
+    await recalculateDuplicateFlags();
+    redirect("/admin?inativos=1");
+  }
+
+  async function permanentDeleteTeams(formData: FormData) {
+    "use server";
+    const adminUser = await requireSuperAdmin();
+    const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
+
+    if (ids.length === 0) return;
+
+    // Buscar logos para limpar do Blob
+    const toDelete = await db
+      .select({ id: teams.id, logoUrl: teams.logoUrl })
+      .from(teams)
+      .where(inArray(teams.id, ids));
+
+    const blobUrls = toDelete
+      .map((t) => t.logoUrl)
+      .filter((url): url is string => !!url && url.includes("blob.vercel-storage.com"));
+
+    // Apagar logos do Vercel Blob
+    if (blobUrls.length > 0) {
+      try {
+        await del(blobUrls);
+      } catch {
+        // Continuar mesmo se falhar a limpeza do blob
+      }
+    }
+
+    // DELETE permanente da BD
+    await db.delete(teams).where(inArray(teams.id, ids));
+
+    for (const teamId of ids) {
+      await logAudit({
+        actorType: "super_admin",
+        actorEmail: adminUser.email,
+        action: "team_permanently_deleted",
         teamId,
       });
     }
@@ -249,7 +292,10 @@ export default async function AdminPage({
             deleteAction={deleteTeam}
             bulkDeleteAction={bulkDeleteTeams}
             reactivateAction={reactivateTeams}
+            permanentDeleteAction={permanentDeleteTeams}
             isInactiveView={showInactive}
+            isDuplicatesView={showDuplicates}
+            isSuperAdmin={adminUser.role === "super_admin"}
           />
 
           {/* Pagination */}

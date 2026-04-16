@@ -19,7 +19,10 @@ type Props = {
   deleteAction: (formData: FormData) => Promise<void>;
   bulkDeleteAction: (formData: FormData) => Promise<void>;
   reactivateAction?: (formData: FormData) => Promise<void>;
+  permanentDeleteAction?: (formData: FormData) => Promise<void>;
   isInactiveView?: boolean;
+  isDuplicatesView?: boolean;
+  isSuperAdmin?: boolean;
 };
 
 export function AdminTeamTable({
@@ -27,9 +30,14 @@ export function AdminTeamTable({
   deleteAction,
   bulkDeleteAction,
   reactivateAction,
+  permanentDeleteAction,
   isInactiveView = false,
+  isDuplicatesView = false,
+  isSuperAdmin = false,
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmPermanent, setConfirmPermanent] = useState(false);
+  const showPermanentDelete = isSuperAdmin && permanentDeleteAction && (isInactiveView || isDuplicatesView);
 
   function toggleAll() {
     if (selected.size === teams.length) {
@@ -58,7 +66,7 @@ export function AdminTeamTable({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setSelected(new Set())}
+              onClick={() => { setSelected(new Set()); setConfirmPermanent(false); }}
             >
               Limpar
             </Button>
@@ -84,6 +92,38 @@ export function AdminTeamTable({
                   Inativar ({selected.size})
                 </Button>
               </form>
+            )}
+            {showPermanentDelete && (
+              confirmPermanent ? (
+                <div className="flex items-center gap-2">
+                  <form action={permanentDeleteAction}>
+                    <input
+                      type="hidden"
+                      name="teamIds"
+                      value={Array.from(selected).join(",")}
+                    />
+                    <Button type="submit" variant="destructive" size="sm" className="bg-red-700 hover:bg-red-800">
+                      Confirmar eliminação ({selected.size})
+                    </Button>
+                  </form>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setConfirmPermanent(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-700 text-red-500 hover:bg-red-950 hover:text-red-400"
+                  onClick={() => setConfirmPermanent(true)}
+                >
+                  Apagar definitivamente ({selected.size})
+                </Button>
+              )
             )}
           </div>
         </div>
