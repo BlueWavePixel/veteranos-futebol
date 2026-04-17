@@ -24,6 +24,10 @@ export async function mergeTeams(
   adminEmail: string,
   adminId: string
 ) {
+  if (primaryId === secondaryId) {
+    throw new Error("Não é possível fundir uma equipa consigo mesma.");
+  }
+
   // 1. Load both teams
   const [primary] = await db
     .select()

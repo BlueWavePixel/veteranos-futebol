@@ -1,5 +1,20 @@
 type Coordinates = { latitude: number; longitude: number };
 
+const ALLOWED_HOSTS = [
+  "google.com", "google.pt", "google.es", "google.co.uk",
+  "goo.gl", "maps.app.goo.gl", "g.co",
+];
+
+/** Check if a URL points to an allowed maps domain (prevents SSRF). */
+function isAllowedMapsUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return ALLOWED_HOSTS.some((h) => host === h || host.endsWith("." + h));
+  } catch {
+    return false;
+  }
+}
+
 function isValidCoords(lat: number, lng: number): boolean {
   return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && !(lat === 0 && lng === 0);
 }
@@ -65,6 +80,7 @@ function extractUrlFromText(input: string): string | null {
  *  Only trusts @lat,lng and JSON patterns — NOT center= which is always
  *  a server-geolocation default (PT on EU servers, US on Vercel US-East). */
 async function extractCoordsFromHtml(url: string): Promise<Coordinates | null> {
+  if (!isAllowedMapsUrl(url)) return null;
   try {
     const response = await fetch(url, {
       redirect: "follow",
@@ -133,7 +149,7 @@ export async function extractCoordinates(
     cleanUrl.includes("g.co/") ||
     cleanUrl.includes("share.google");
 
-  if (isShortUrl) {
+  if (isShortUrl && isAllowedMapsUrl(cleanUrl)) {
     try {
       // Step 1: try HEAD redirect
       const response = await fetch(cleanUrl, {
@@ -156,7 +172,7 @@ export async function extractCoordinates(
   }
 
   // For google.com/maps URLs that might need HTML scraping (e.g. maps?q= with place name)
-  if (cleanUrl.includes("google.com/maps") || cleanUrl.includes("google.com/search")) {
+  if (isAllowedMapsUrl(cleanUrl) && (cleanUrl.includes("google.com/maps") || cleanUrl.includes("google.com/search"))) {
     return await extractCoordsFromHtml(cleanUrl);
   }
 

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=expired", request.url));
   }
 
-  await logSecurityEvent({ eventType: "login_success", email: result.email, ip, userAgent });
+  // login_success is logged in /auth/callback when session cookie is set
 
   // Determine redirect destination
   let redirectTo = "/dashboard";

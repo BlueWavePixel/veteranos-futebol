@@ -11,6 +11,11 @@ export async function extractTeamFields(
 ) {
   let mapsUrl = (formData.get("mapsUrl") as string)?.trim() || null;
 
+  // Sanitize: only allow http/https URLs (prevent javascript: XSS)
+  if (mapsUrl && !/^https?:\/\//i.test(mapsUrl) && !/^-?\d/.test(mapsUrl)) {
+    mapsUrl = null;
+  }
+
   // If user entered raw coordinates, convert to a Google Maps link
   const coords = await extractCoordinates(mapsUrl);
   if (mapsUrl && coords && /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/.test(mapsUrl)) {

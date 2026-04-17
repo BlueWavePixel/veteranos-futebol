@@ -38,7 +38,7 @@ export default async function TeamPage({ params }: Props) {
   const [team] = await db
     .select()
     .from(teams)
-    .where(and(eq(teams.slug, slug), eq(teams.isActive, true)));
+    .where(and(eq(teams.slug, slug), eq(teams.isActive, true), eq(teams.isApproved, true)));
 
   if (!team) notFound();
 

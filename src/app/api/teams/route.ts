@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get("q")?.replace(/\s+/g, " ").trim() || null;
   const location = searchParams.get("location")?.replace(/\s+/g, " ").trim() || null;
 
-  const conditions = [eq(teams.isActive, true)];
+  const conditions = [eq(teams.isActive, true), eq(teams.isApproved, true)];
 
   if (query) {
     conditions.push(

@@ -67,9 +67,18 @@ async function registerTeam(
   const emailDomain = coordinatorEmail.split("@")[1] || "";
   const emailIsSuspicious = tempEmailDomains.some((d) => emailDomain.includes(d));
 
-  // Verify Turnstile — only enforce if token is provided
+  // Verify Turnstile — require when configured
   const turnstileResponse = formData.get("cf-turnstile-response") as string;
-  if (process.env.TURNSTILE_SECRET_KEY && turnstileResponse) {
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    if (!turnstileResponse) {
+      await logSecurityEvent({
+        eventType: "captcha_failed",
+        email: coordinatorEmail,
+        ip,
+        details: { reason: "token_missing" },
+      });
+      return { error: "Verificação de segurança obrigatória. Tente novamente." };
+    }
     const valid = await verifyTurnstile(turnstileResponse, ip);
     if (!valid) {
       await logSecurityEvent({

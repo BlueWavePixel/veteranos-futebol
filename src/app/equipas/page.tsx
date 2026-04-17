@@ -18,7 +18,7 @@ export default async function EquipasPage({
   const q = rawQ?.replace(/\s+/g, " ").trim() || undefined;
   const locale = await getLocale();
 
-  const conditions = [eq(teams.isActive, true)];
+  const conditions = [eq(teams.isActive, true), eq(teams.isApproved, true)];
 
   if (q) {
     conditions.push(
@@ -44,7 +44,7 @@ export default async function EquipasPage({
   const allDistritos = await db
     .selectDistinct({ distrito: teams.distrito })
     .from(teams)
-    .where(and(eq(teams.isActive, true)))
+    .where(and(eq(teams.isActive, true), eq(teams.isApproved, true)))
     .orderBy(asc(teams.distrito));
 
   const distritos = allDistritos
