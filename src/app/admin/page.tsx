@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
-import { count, eq, or, asc, desc, isNotNull, and, inArray, sql } from "drizzle-orm";
+import { count, eq, or, asc, desc, and, inArray, sql } from "drizzle-orm";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth/session";
 import { del } from "@vercel/blob";
 import { logAudit } from "@/lib/audit";
@@ -21,7 +21,7 @@ const PAGE_SIZE = 25;
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string; duplicados?: string; inativos?: string; pendentes?: string; ordem?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; inativos?: string; pendentes?: string; ordem?: string }>;
 }) {
   const adminUser = await requireAdmin();
 
@@ -205,9 +205,8 @@ export default async function AdminPage({
     redirect("/admin?pendentes=1");
   }
 
-  const { page: pageParam, q: rawQ, duplicados, inativos, pendentes, ordem } = await searchParams;
+  const { page: pageParam, q: rawQ, inativos, pendentes, ordem } = await searchParams;
   const q = rawQ?.replace(/\s+/g, " ").trim() || undefined;
-  const showDuplicates = duplicados === "1";
   const showInactive = inativos === "1";
   const showPending = pendentes === "1";
   const sortBy = ordem || "nome"; // "nome" | "data" | "data_asc"
@@ -228,9 +227,6 @@ export default async function AdminPage({
         sql`unaccent(coalesce(${teams.distrito}, '')) ilike unaccent(${pattern})`,
       )!,
     );
-  }
-  if (showDuplicates) {
-    searchConditions.push(isNotNull(teams.duplicateFlag));
   }
   if (showPending) {
     searchConditions.push(eq(teams.isApproved, false));
@@ -296,7 +292,6 @@ export default async function AdminPage({
   function pageUrl(page: number) {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
-    if (showDuplicates) params.set("duplicados", "1");
     if (showInactive) params.set("inativos", "1");
     if (showPending) params.set("pendentes", "1");
     if (sortBy !== "nome") params.set("ordem", sortBy);
@@ -353,7 +348,6 @@ export default async function AdminPage({
               <form action="/admin" method="GET" className="w-full sm:w-auto">
                 {showPending && <input type="hidden" name="pendentes" value="1" />}
                 {showInactive && <input type="hidden" name="inativos" value="1" />}
-                {showDuplicates && <input type="hidden" name="duplicados" value="1" />}
                 {sortBy !== "nome" && <input type="hidden" name="ordem" value={sortBy} />}
                 <Input
                   name="q"
@@ -373,13 +367,13 @@ export default async function AdminPage({
                   {showPending ? "Todos" : `Pendentes${pendingApproval > 0 ? ` (${pendingApproval})` : ""}`}
                 </Button>
               </Link>
-              <Link href={showDuplicates ? "/admin" : "/admin?duplicados=1"}>
+              <Link href="/admin/duplicados">
                 <Button
-                  variant={showDuplicates ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
                   className="whitespace-nowrap"
                 >
-                  {showDuplicates ? "Todos" : "Duplicados"}
+                  Duplicados
                 </Button>
               </Link>
               <Link href={showInactive ? "/admin" : "/admin?inativos=1"}>
@@ -422,7 +416,7 @@ export default async function AdminPage({
             approveAction={approveTeams}
             rejectAction={rejectTeams}
             isInactiveView={showInactive}
-            isDuplicatesView={showDuplicates}
+            isDuplicatesView={false}
             isPendingView={showPending}
             isSuperAdmin={adminUser.role === "super_admin"}
           />

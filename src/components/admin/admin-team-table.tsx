@@ -192,17 +192,6 @@ export function AdminTeamTable({
               </TableCell>
               <TableCell className="font-medium">
                 {team.name}
-                {team.duplicateFlag && (
-                  <span
-                    className="block text-[10px] text-orange-400 mt-0.5"
-                    title={team.duplicateFlag}
-                  >
-                    ⚠{" "}
-                    {team.duplicateFlag.length > 60
-                      ? team.duplicateFlag.slice(0, 60) + "..."
-                      : team.duplicateFlag}
-                  </span>
-                )}
               </TableCell>
               <TableCell>
                 <div>{team.coordinatorName}</div>
