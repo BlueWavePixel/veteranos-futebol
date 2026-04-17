@@ -17,7 +17,7 @@ function getTransporter() {
 
 /**
  * Email de apresentação da plataforma Veteranos - Clubes de Futebol.
- * Enviado uma única vez a todos os coordenadores de equipas existentes.
+ * Enviado a coordenadores de equipas migradas que ainda não confirmaram RGPD.
  */
 export async function sendAnnouncementEmail(
   to: string,

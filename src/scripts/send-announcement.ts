@@ -17,7 +17,7 @@
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import * as schema from "../lib/db/schema";
 import { sendAnnouncementEmail } from "../lib/email/send-announcement";
 import * as fs from "fs";
@@ -75,7 +75,7 @@ async function main() {
     return;
   }
 
-  // Buscar todas as equipas ativas e aprovadas
+  // Buscar equipas ativas com RGPD pendente (migradas, nunca fizeram login)
   const teams = await db
     .select({
       email: schema.teams.coordinatorEmail,
@@ -83,7 +83,12 @@ async function main() {
       slug: schema.teams.slug,
     })
     .from(schema.teams)
-    .where(eq(schema.teams.isActive, true));
+    .where(
+      and(
+        eq(schema.teams.isActive, true),
+        eq(schema.teams.rgpdConsent, false),
+      ),
+    );
 
   // Deduplicar por email
   const uniqueTeams = new Map<string, { name: string; slug: string }>();
