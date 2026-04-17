@@ -40,7 +40,7 @@ export async function sendAnnouncementEmail(
     <!-- Header -->
     <div style="text-align: center; padding-bottom: 24px; border-bottom: 1px solid #222;">
       <h1 style="color: #16a34a; font-size: 24px; margin: 0;">&#9917; Veteranos - Clubes de Futebol</h1>
-      <p style="color: #888; font-size: 14px; margin: 8px 0 0;">A nova plataforma dos veteranos de Portugal</p>
+      <p style="color: #888; font-size: 14px; margin: 8px 0 0;">Plataforma oficial de contactos para equipas de veteranos em Portugal</p>
     </div>
 
     <!-- Body -->
@@ -50,15 +50,27 @@ export async function sendAnnouncementEmail(
 
       <p>Está a receber este email porque a equipa <strong style="color: #fff;">${teamName}</strong> faz parte da base de dados de equipas de veteranos de futebol de Portugal.</p>
 
-      <p>Durante os últimos anos, os contactos das equipas veteranas foram mantidos em ficheiros Excel partilhados entre coordenadores. Com o crescimento da comunidade, decidimos migrar toda esta informação para uma plataforma online, mais organizada e acessível a todos.</p>
+      <p>Os contactos das equipas veteranas que estavam em ficheiros Excel foram migrados para uma plataforma online, mais organizada, segura e acessível a todos.</p>
 
-      <h2 style="color: #fff; font-size: 18px; margin: 24px 0 12px;">O que mudou?</h2>
+      <h2 style="color: #fff; font-size: 18px; margin: 24px 0 12px;">O que pode fazer na plataforma?</h2>
 
       <ul style="padding-left: 20px; color: #ccc;">
-        <li>Os dados da sua equipa foram migrados automaticamente</li>
-        <li>Pode consultar e atualizar as informações a qualquer momento</li>
-        <li>Os contactos estão protegidos e só visíveis para coordenadores verificados</li>
-        <li>Já existem mais de 300 equipas registadas na plataforma</li>
+        <li>Consultar e atualizar os dados da sua equipa a qualquer momento</li>
+        <li>Pesquisar equipas por nome, concelho ou distrito</li>
+        <li>Consultar o mapa interativo com mais de 300 equipas</li>
+        <li>Criar o calendário de jogos, registar resultados e exportar para o telemóvel</li>
+        <li>Enviar sugestões e dúvidas diretamente aos moderadores</li>
+      </ul>
+
+      <h2 style="color: #fff; font-size: 18px; margin: 24px 0 12px;">&#128274; Segurança e proteção de dados</h2>
+
+      <p>A proteção dos vossos dados é uma prioridade. Implementámos várias medidas de segurança:</p>
+
+      <ul style="padding-left: 20px; color: #ccc;">
+        <li><strong style="color: #fff;">Contactos protegidos:</strong> os telefones e emails dos coordenadores só são visíveis para equipas verificadas. Visitantes anónimos não têm acesso.</li>
+        <li><strong style="color: #fff;">Aprovação de registos:</strong> novos registos na plataforma são revistos por um moderador antes de ficarem ativos, para evitar acessos indevidos.</li>
+        <li><strong style="color: #fff;">Acesso sem passwords:</strong> o login é feito através de um link enviado para o email do coordenador, sem necessidade de criar ou decorar passwords.</li>
+        <li><strong style="color: #fff;">Proteção anti-bots:</strong> o sistema inclui CAPTCHA e outras camadas de segurança para impedir registos automáticos ou falsos.</li>
       </ul>
 
       <h2 style="color: #fff; font-size: 18px; margin: 24px 0 12px;">O que precisa de fazer?</h2>
@@ -72,7 +84,7 @@ export async function sendAnnouncementEmail(
         </a>
       </div>
 
-      <p>Para editar os dados, utilize o botão abaixo para receber um link de acesso por email (sem passwords):</p>
+      <p>Para editar os dados, clique no botão abaixo para receber um link de acesso por email:</p>
 
       <div style="text-align: center; margin: 20px 0;">
         <a href="${loginUrl}" style="display: inline-block; padding: 12px 24px; background-color: #222; color: #16a34a; text-decoration: none; border-radius: 8px; font-weight: 500; border: 1px solid #333;">
