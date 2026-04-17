@@ -9,7 +9,7 @@ export function Header({ locale }: { locale: Locale }) {
     <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <Image src="/images/logo.png" alt="Logo" width={32} height={32} className="h-8 w-auto" />
+          <Image src="/images/logo.png" alt="Logo" width={32} height={32} className="h-8 w-auto dark:brightness-[1.15] dark:contrast-[1.1] mix-blend-multiply dark:mix-blend-screen" />
           Veteranos - Clubes de Futebol
         </Link>
         <nav className="hidden md:flex items-center gap-4">

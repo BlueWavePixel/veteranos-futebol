@@ -122,9 +122,7 @@ export default async function AdminPage({
       }
     }
 
-    // DELETE permanente da BD
-    await db.delete(teams).where(inArray(teams.id, ids));
-
+    // Log audit BEFORE deleting (FK constraint: team must exist)
     for (const teamId of ids) {
       await logAudit({
         actorType: "super_admin",
@@ -133,6 +131,9 @@ export default async function AdminPage({
         teamId,
       });
     }
+
+    // DELETE permanente da BD
+    await db.delete(teams).where(inArray(teams.id, ids));
 
     await recalculateDuplicateFlags();
     redirect("/admin?inativos=1");
