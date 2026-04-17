@@ -42,12 +42,12 @@ export async function notifyAdminsSuggestion(params: {
     if (adminEmails.length === 0) return;
 
     await getTransporter().sendMail({
-      from: `"Veteranos Futebol" <${process.env.GMAIL_USER}>`,
+      from: `"Veteranos - Clubes de Futebol" <${process.env.GMAIL_USER}>`,
       to: adminEmails.join(", "),
       subject: `Nova sugestão: ${params.subject}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #16a34a;">Nova Sugestão · Veteranos Futebol</h2>
+          <h2 style="color: #16a34a;">Nova Sugestão · Veteranos - Clubes de Futebol</h2>
           <table style="border-collapse: collapse; width: 100%; margin: 16px 0;">
             <tr>
               <td style="padding: 8px; font-weight: bold; color: #666;">De:</td>
@@ -91,12 +91,12 @@ export async function notifyCoordinatorReply(params: {
     const statusLabel = STATUS_PT[params.status] || params.status;
 
     await getTransporter().sendMail({
-      from: `"Veteranos Futebol" <${process.env.GMAIL_USER}>`,
+      from: `"Veteranos - Clubes de Futebol" <${process.env.GMAIL_USER}>`,
       to: params.coordinatorEmail,
       subject: `Resposta à sua sugestão: ${params.subject}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #16a34a;">Veteranos Futebol · Resposta à Sugestão</h2>
+          <h2 style="color: #16a34a;">Veteranos - Clubes de Futebol · Resposta à Sugestão</h2>
           <p>Olá ${escHtml(params.coordinatorName)},</p>
           <p>A equipa de moderação respondeu à sua sugestão.</p>
 

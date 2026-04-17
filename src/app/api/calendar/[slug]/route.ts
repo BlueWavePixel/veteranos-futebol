@@ -79,7 +79,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
   const calendar = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    `PRODID:-//Veteranos Futebol//${team.name}//PT`,
+    `PRODID:-//Veteranos - Clubes de Futebol//${team.name}//PT`,
     `X-WR-CALNAME:${escapeICS(team.name)}: Jogos`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",

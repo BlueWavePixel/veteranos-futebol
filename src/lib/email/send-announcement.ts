@@ -16,7 +16,7 @@ function getTransporter() {
 }
 
 /**
- * Email de apresentação da plataforma Veteranos Futebol.
+ * Email de apresentação da plataforma Veteranos - Clubes de Futebol.
  * Enviado uma única vez a todos os coordenadores de equipas existentes.
  */
 export async function sendAnnouncementEmail(
@@ -28,7 +28,7 @@ export async function sendAnnouncementEmail(
   const teamUrl = `${appUrl}/equipas/${teamSlug}`;
   const loginUrl = `${appUrl}/login`;
 
-  const subject = "A sua equipa já está na nova plataforma · Veteranos Futebol";
+  const subject = "A sua equipa já está na nova plataforma · Veteranos - Clubes de Futebol";
 
   const html = `
 <!DOCTYPE html>
@@ -39,7 +39,7 @@ export async function sendAnnouncementEmail(
 
     <!-- Header -->
     <div style="text-align: center; padding-bottom: 24px; border-bottom: 1px solid #222;">
-      <h1 style="color: #16a34a; font-size: 24px; margin: 0;">&#9917; Veteranos Futebol</h1>
+      <h1 style="color: #16a34a; font-size: 24px; margin: 0;">&#9917; Veteranos - Clubes de Futebol</h1>
       <p style="color: #888; font-size: 14px; margin: 8px 0 0;">A nova plataforma dos veteranos de Portugal</p>
     </div>
 
@@ -87,7 +87,7 @@ export async function sendAnnouncementEmail(
     <!-- Footer -->
     <div style="border-top: 1px solid #222; padding-top: 20px; text-align: center;">
       <p style="color: #666; font-size: 12px; margin: 0;">
-        Veteranos Futebol · Plataforma de contactos de equipas veteranas de Portugal
+        Veteranos - Clubes de Futebol · Plataforma de contactos de equipas veteranas de Portugal
       </p>
       <p style="color: #555; font-size: 11px; margin: 8px 0 0;">
         Recebeu este email porque o seu contacto consta na base de dados de equipas veteranas.
@@ -101,7 +101,7 @@ export async function sendAnnouncementEmail(
 
   try {
     await getTransporter().sendMail({
-      from: `"Veteranos Futebol" <${process.env.GMAIL_USER}>`,
+      from: `"Veteranos - Clubes de Futebol" <${process.env.GMAIL_USER}>`,
       to,
       subject,
       html,

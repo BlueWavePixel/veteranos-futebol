@@ -10,7 +10,7 @@ export function Header({ locale }: { locale: Locale }) {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
           <Image src="/images/logo.png" alt="Logo" width={32} height={32} className="h-8 w-auto" />
-          Veteranos Futebol
+          Veteranos - Clubes de Futebol
         </Link>
         <nav className="hidden md:flex items-center gap-4">
           <Link

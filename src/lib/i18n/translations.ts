@@ -111,10 +111,10 @@ const translations = {
 
   home: {
     title: {
-      pt: "Veteranos Futebol",
-      br: "Veteranos Futebol",
-      es: "Veteranos Fútbol",
-      en: "Veteranos Football",
+      pt: "Veteranos - Clubes de Futebol",
+      br: "Veteranos - Clubes de Futebol",
+      es: "Veteranos - Clubes de Fútbol",
+      en: "Veteranos - Football Clubs",
     },
     subtitle: {
       pt: "Contactos de equipas de veteranos de futebol",
@@ -177,10 +177,10 @@ const translations = {
       en: "Each team has its own match calendar. Add fixtures, record results and share the calendar with your team.",
     },
     aboutPlatform: {
-      pt: "Veteranos Futebol é uma plataforma gratuita de contactos para equipas de veteranos em Portugal. O objetivo é simples: facilitar a comunicação entre clubes e ajudar a marcar jogos amigáveis ou torneios.",
-      br: "Veteranos Futebol é uma plataforma gratuita de contactos para times de veteranos. O objetivo é simples: facilitar a comunicação entre clubes e ajudar a marcar jogos amistosos ou torneios.",
-      es: "Veteranos Fútbol es una plataforma gratuita de contactos para equipos de veteranos. El objetivo es sencillo: facilitar la comunicación entre clubes y ayudar a organizar partidos amistosos o torneos.",
-      en: "Veteranos Football is a free contact platform for veteran football teams in Portugal. The goal is simple: make it easier for clubs to communicate and help organise friendly matches or tournaments.",
+      pt: "Veteranos - Clubes de Futebol é uma plataforma gratuita de contactos para equipas de veteranos em Portugal. O objetivo é simples: facilitar a comunicação entre clubes e ajudar a marcar jogos amigáveis ou torneios.",
+      br: "Veteranos - Clubes de Futebol é uma plataforma gratuita de contactos para times de veteranos. O objetivo é simples: facilitar a comunicação entre clubes e ajudar a marcar jogos amistosos ou torneios.",
+      es: "Veteranos - Clubes de Fútbol es una plataforma gratuita de contactos para equipos de veteranos. El objetivo es sencillo: facilitar la comunicación entre clubes y ayudar a organizar partidos amistosos o torneos.",
+      en: "Veteranos - Football Clubs is a free contact platform for veteran football teams in Portugal. The goal is simple: make it easier for clubs to communicate and help organise friendly matches or tournaments.",
     },
     afterRegister: {
       pt: "Após o registo, receberá um link de acesso por email para gerir a ficha da sua equipa: atualizar dados, adicionar jogos ao calendário, registar resultados e exportar o calendário para o Google Calendar ou telemóvel.",
@@ -661,10 +661,10 @@ const translations = {
 
   email: {
     subject: {
-      pt: "Aceda à sua equipa · Veteranos Futebol",
-      br: "Acesse o seu time · Veteranos Futebol",
-      es: "Accede a tu equipo · Veteranos Fútbol",
-      en: "Access your team · Veteranos Football",
+      pt: "Aceda à sua equipa · Veteranos - Clubes de Futebol",
+      br: "Acesse o seu time · Veteranos - Clubes de Futebol",
+      es: "Accede a tu equipo · Veteranos - Clubes de Fútbol",
+      en: "Access your team · Veteranos - Football Clubs",
     },
     body: {
       pt: "Clique no link abaixo para aceder à sua equipa:",
@@ -1403,10 +1403,10 @@ const translations = {
       en: "1. Data Controller",
     },
     s1Text: {
-      pt: "A plataforma Veteranos Futebol é gerida pelos coordenadores do grupo de veteranos. Para questões sobre proteção de dados, contacte os coordenadores através do grupo de WhatsApp dos Veteranos.",
-      br: "A plataforma Veteranos Futebol é gerida pelos coordenadores do grupo de veteranos. Para questões sobre proteção de dados, contacte os coordenadores através do grupo de WhatsApp dos Veteranos.",
-      es: "La plataforma Veteranos Fútbol está gestionada por los coordinadores del grupo de veteranos. Para cuestiones sobre protección de datos, contacta a los coordinadores a través del grupo de WhatsApp de los Veteranos.",
-      en: "The Veteranos Football platform is managed by the veteran group coordinators. For data protection enquiries, contact the coordinators via the Veteranos WhatsApp group.",
+      pt: "A plataforma Veteranos - Clubes de Futebol é gerida pelos coordenadores do grupo de veteranos. Para questões sobre proteção de dados, contacte os coordenadores através do grupo de WhatsApp dos Veteranos.",
+      br: "A plataforma Veteranos - Clubes de Futebol é gerida pelos coordenadores do grupo de veteranos. Para questões sobre proteção de dados, contacte os coordenadores através do grupo de WhatsApp dos Veteranos.",
+      es: "La plataforma Veteranos - Clubes de Fútbol está gestionada por los coordinadores del grupo de veteranos. Para cuestiones sobre protección de datos, contacta a los coordinadores a través del grupo de WhatsApp de los Veteranos.",
+      en: "The Veteranos - Football Clubs platform is managed by the veteran group coordinators. For data protection enquiries, contact the coordinators via the Veteranos WhatsApp group.",
     },
     s2Title: {
       pt: "2. Finalidade do Tratamento",

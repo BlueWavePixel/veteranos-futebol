@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Veteranos Futebol · Contactos de Equipas",
+  title: "Veteranos - Clubes de Futebol · Contactos de Equipas",
   description:
     "Plataforma de contactos de equipas de veteranos de futebol. Encontre equipas, marque jogos.",
   icons: {
