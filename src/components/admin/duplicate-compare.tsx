@@ -6,6 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Team, DuplicatePair } from "@/lib/db/schema";
 
+function countFilledFields(team: Team): number {
+  const optionalFields: (keyof Team)[] = [
+    "coordinatorPhone", "coordinatorAltName", "coordinatorAltPhone",
+    "logoUrl", "fieldName", "fieldAddress", "location", "localidade",
+    "concelho", "kitPrimary", "kitPrimaryShirt", "kitPrimaryShorts",
+    "kitSecondarySocks", "socialFacebook", "socialInstagram",
+    "latitude", "longitude",
+  ];
+  return optionalFields.filter((f) => {
+    const v = team[f];
+    return v !== null && v !== undefined && v !== "";
+  }).length;
+}
+
+function getRecommendedId(teamA: Team, teamB: Team): string {
+  const aUpdated = teamA.updatedAt?.getTime() ?? 0;
+  const bUpdated = teamB.updatedAt?.getTime() ?? 0;
+  if (aUpdated !== bUpdated) return aUpdated > bUpdated ? teamA.id : teamB.id;
+  return countFilledFields(teamA) >= countFilledFields(teamB) ? teamA.id : teamB.id;
+}
+
 const REASON_LABELS: Record<string, string> = {
   email: "Mesmo Email",
   phone: "Mesmo Telefone",
@@ -73,8 +94,16 @@ export function DuplicateCompare({
   resolveConfirmedAction,
   mergeAction,
 }: Props) {
-  const [primaryId, setPrimaryId] = useState<string>(teamA.id);
   const isSelfCheck = teamA.id === teamB.id;
+  const [primaryId, setPrimaryId] = useState<string>(
+    isSelfCheck ? teamA.id : getRecommendedId(teamA, teamB)
+  );
+
+  const filledA = countFilledFields(teamA);
+  const filledB = countFilledFields(teamB);
+  const isAMoreRecent = (teamA.updatedAt?.getTime() ?? 0) > (teamB.updatedAt?.getTime() ?? 0);
+  const isBMoreRecent = (teamB.updatedAt?.getTime() ?? 0) > (teamA.updatedAt?.getTime() ?? 0);
+  const recommendedId = isSelfCheck ? teamA.id : getRecommendedId(teamA, teamB);
 
   const secondaryId = primaryId === teamA.id ? teamB.id : teamA.id;
 
@@ -136,12 +165,56 @@ export function DuplicateCompare({
             {/* Side-by-side comparison header */}
             <div className="grid grid-cols-[120px_1fr_1fr] gap-2 pb-2 mb-2 border-b border-border">
               <span />
-              <span className="text-xs font-semibold text-muted-foreground">
-                Equipa A
-              </span>
-              <span className="text-xs font-semibold text-muted-foreground">
-                Equipa B
-              </span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-muted-foreground">Equipa A</span>
+                <div className="flex flex-wrap gap-1">
+                  {teamA.id === recommendedId && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-semibold">
+                      Sugerida
+                    </span>
+                  )}
+                  {isAMoreRecent && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                      Mais recente
+                    </span>
+                  )}
+                  {filledA > filledB && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">
+                      Mais completa ({filledA})
+                    </span>
+                  )}
+                  {filledA === filledB && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-border text-muted-foreground">
+                      {filledA} campos
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-muted-foreground">Equipa B</span>
+                <div className="flex flex-wrap gap-1">
+                  {teamB.id === recommendedId && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-semibold">
+                      Sugerida
+                    </span>
+                  )}
+                  {isBMoreRecent && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                      Mais recente
+                    </span>
+                  )}
+                  {filledB > filledA && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">
+                      Mais completa ({filledB})
+                    </span>
+                  )}
+                  {filledA === filledB && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-border text-muted-foreground">
+                      {filledB} campos
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
             <CompareField
@@ -198,6 +271,11 @@ export function DuplicateCompare({
               label="Criado em"
               valueA={teamA.createdAt?.toLocaleDateString("pt-PT")}
               valueB={teamB.createdAt?.toLocaleDateString("pt-PT")}
+            />
+            <CompareField
+              label="Atualizado em"
+              valueA={teamA.updatedAt?.toLocaleDateString("pt-PT")}
+              valueB={teamB.updatedAt?.toLocaleDateString("pt-PT")}
             />
           </div>
         )}
