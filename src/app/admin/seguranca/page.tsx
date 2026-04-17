@@ -1,11 +1,12 @@
 import { db } from "@/lib/db";
 import { securityLog } from "@/lib/db/schema";
-import { desc, eq, count, sql } from "drizzle-orm";
+import { desc, eq, count, sql, isNull, isNotNull, and, inArray } from "drizzle-orm";
 import { requireSuperAdmin } from "@/lib/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -23,18 +24,62 @@ const EVENT_LABELS: Record<string, { label: string; color: string }> = {
   team_rejected: { label: "Equipa Rejeitada", color: "bg-red-500/20 text-red-400" },
 };
 
+const THREAT_TYPES = new Set([
+  "honeypot_triggered", "suspicious_registration", "captcha_failed",
+  "login_failed", "rate_limit_hit", "token_invalid",
+]);
+
 export default async function SegurancaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; tipo?: string }>;
+  searchParams: Promise<{ page?: string; tipo?: string; resolvidos?: string }>;
 }) {
-  await requireSuperAdmin();
+  const adminUser = await requireSuperAdmin();
 
-  const { page: pageParam, tipo } = await searchParams;
+  async function resolveEvent(formData: FormData) {
+    "use server";
+    const admin = await requireSuperAdmin();
+    const eventId = formData.get("eventId") as string;
+    if (eventId) {
+      await db.update(securityLog)
+        .set({ resolvedAt: new Date(), resolvedBy: admin.email })
+        .where(eq(securityLog.id, eventId));
+    }
+    redirect("/admin/seguranca");
+  }
+
+  async function resolveAllThreats(formData: FormData) {
+    "use server";
+    const admin = await requireSuperAdmin();
+    const ids = (formData.get("eventIds") as string).split(",").filter(Boolean);
+    if (ids.length > 0) {
+      await db.update(securityLog)
+        .set({ resolvedAt: new Date(), resolvedBy: admin.email })
+        .where(inArray(securityLog.id, ids));
+    }
+    redirect("/admin/seguranca");
+  }
+
+  const { page: pageParam, tipo, resolvidos } = await searchParams;
+  const showResolved = resolvidos === "1";
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
   const offset = (currentPage - 1) * PAGE_SIZE;
 
-  const whereClause = tipo ? eq(securityLog.eventType, tipo) : undefined;
+  const conditions = [];
+  if (tipo) conditions.push(eq(securityLog.eventType, tipo));
+  if (!showResolved) conditions.push(isNull(securityLog.resolvedAt));
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  // Count unresolved threats
+  const [{ unresolvedThreats }] = await db
+    .select({ unresolvedThreats: count() })
+    .from(securityLog)
+    .where(
+      and(
+        isNull(securityLog.resolvedAt),
+        sql`${securityLog.eventType} IN ('honeypot_triggered', 'suspicious_registration', 'captcha_failed', 'login_failed', 'rate_limit_hit', 'token_invalid')`,
+      ),
+    );
 
   const logs = await db
     .select()
@@ -185,6 +230,22 @@ export default async function SegurancaPage({
         </Card>
       )}
 
+      {/* Unresolved threats alert */}
+      {unresolvedThreats > 0 && (
+        <Card className="mb-6 border-red-500/50 bg-red-500/5">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-red-400">
+                {unresolvedThreats} ameaça{unresolvedThreats !== 1 ? "s" : ""} por resolver
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Revê cada evento e marca como resolvido.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Event type filters */}
       <div className="flex flex-wrap gap-2 mb-6">
         <Link href="/admin/seguranca">
@@ -195,7 +256,7 @@ export default async function SegurancaPage({
         {stats.map((s) => {
           const info = EVENT_LABELS[s.eventType] || { label: s.eventType, color: "" };
           return (
-            <Link key={s.eventType} href={`/admin/seguranca?tipo=${s.eventType}`}>
+            <Link key={s.eventType} href={`/admin/seguranca?tipo=${s.eventType}${showResolved ? "&resolvidos=1" : ""}`}>
               <Badge
                 variant="secondary"
                 className={`cursor-pointer ${tipo === s.eventType ? "ring-2 ring-primary" : ""} ${info.color}`}
@@ -205,6 +266,11 @@ export default async function SegurancaPage({
             </Link>
           );
         })}
+        <Link href={showResolved ? "/admin/seguranca" : "/admin/seguranca?resolvidos=1"}>
+          <Badge variant="outline" className={`cursor-pointer ${showResolved ? "ring-2 ring-primary" : ""}`}>
+            {showResolved ? "Esconder resolvidos" : "Mostrar resolvidos"}
+          </Badge>
+        </Link>
       </div>
 
       {/* Log entries */}
@@ -230,11 +296,19 @@ export default async function SegurancaPage({
                   color: "bg-muted text-muted-foreground",
                 };
                 const details = log.details as Record<string, unknown> | null;
+                const isThreat = THREAT_TYPES.has(log.eventType);
+                const isResolved = !!log.resolvedAt;
 
                 return (
                   <div
                     key={log.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-lg border border-border/40 bg-muted/20"
+                    className={`flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-lg border ${
+                      isThreat && !isResolved
+                        ? "border-red-500/30 bg-red-500/5"
+                        : isResolved
+                          ? "border-border/20 bg-muted/10 opacity-60"
+                          : "border-border/40 bg-muted/20"
+                    }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <Badge variant="secondary" className={`shrink-0 ${info.color}`}>
@@ -251,6 +325,11 @@ export default async function SegurancaPage({
                             })
                           : "-"}
                       </span>
+                      {isResolved && (
+                        <Badge variant="outline" className="text-[10px] shrink-0 opacity-70">
+                          Resolvido
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       {log.email && (
@@ -269,6 +348,14 @@ export default async function SegurancaPage({
                         </span>
                       )}
                     </div>
+                    {isThreat && !isResolved && (
+                      <form action={resolveEvent} className="shrink-0">
+                        <input type="hidden" name="eventId" value={log.id} />
+                        <Button type="submit" variant="outline" size="sm" className="text-xs">
+                          Resolvido
+                        </Button>
+                      </form>
+                    )}
                   </div>
                 );
               })}

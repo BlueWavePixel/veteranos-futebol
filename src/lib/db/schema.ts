@@ -151,6 +151,8 @@ export const securityLog = pgTable("security_log", {
   ip: text("ip"),
   userAgent: text("user_agent"),
   details: jsonb("details"),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: text("resolved_by"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
