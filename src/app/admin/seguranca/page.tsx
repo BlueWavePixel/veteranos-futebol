@@ -67,7 +67,11 @@ export default async function SegurancaPage({
 
   const conditions = [];
   if (tipo) conditions.push(eq(securityLog.eventType, tipo));
-  if (!showResolved) conditions.push(isNull(securityLog.resolvedAt));
+  if (showResolved) {
+    conditions.push(isNotNull(securityLog.resolvedAt));
+  } else {
+    conditions.push(isNull(securityLog.resolvedAt));
+  }
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
   // Count unresolved threats
@@ -96,13 +100,15 @@ export default async function SegurancaPage({
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  // Stats by event type
+  // Stats by event type (respect resolved filter)
+  const statsWhere = showResolved ? isNotNull(securityLog.resolvedAt) : isNull(securityLog.resolvedAt);
   const stats = await db
     .select({
       eventType: securityLog.eventType,
       total: count(),
     })
     .from(securityLog)
+    .where(statsWhere)
     .groupBy(securityLog.eventType)
     .orderBy(desc(count()));
 
