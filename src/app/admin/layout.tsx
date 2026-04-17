@@ -48,12 +48,20 @@ export default async function AdminLayout({
             )}
           </Link>
           {admin.role === "super_admin" && (
-            <Link
-              href="/admin/moderadores"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Moderadores
-            </Link>
+            <>
+              <Link
+                href="/admin/moderadores"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Moderadores
+              </Link>
+              <Link
+                href="/admin/seguranca"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Segurança
+              </Link>
+            </>
           )}
           <span className="ml-auto text-xs text-muted-foreground">
             {admin.name} (
