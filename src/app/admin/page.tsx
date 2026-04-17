@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
-import { count, eq, ilike, or, asc, isNotNull, and, inArray } from "drizzle-orm";
+import { count, eq, or, asc, desc, isNotNull, and, inArray, sql } from "drizzle-orm";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth/session";
 import { del } from "@vercel/blob";
 import { logAudit } from "@/lib/audit";
@@ -21,7 +21,7 @@ const PAGE_SIZE = 25;
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string; duplicados?: string; inativos?: string; pendentes?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; duplicados?: string; inativos?: string; pendentes?: string; ordem?: string }>;
 }) {
   const adminUser = await requireAdmin();
 
@@ -205,24 +205,26 @@ export default async function AdminPage({
     redirect("/admin?pendentes=1");
   }
 
-  const { page: pageParam, q: rawQ, duplicados, inativos, pendentes } = await searchParams;
+  const { page: pageParam, q: rawQ, duplicados, inativos, pendentes, ordem } = await searchParams;
   const q = rawQ?.replace(/\s+/g, " ").trim() || undefined;
   const showDuplicates = duplicados === "1";
   const showInactive = inativos === "1";
   const showPending = pendentes === "1";
+  const sortBy = ordem || "nome"; // "nome" | "data" | "data_asc"
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
   const offset = (currentPage - 1) * PAGE_SIZE;
 
-  // Build search conditions
+  // Build search conditions — unaccent for accent-insensitive search
   const searchConditions = [];
   if (q) {
+    const pattern = `%${q}%`;
     searchConditions.push(
       or(
-        ilike(teams.name, `%${q}%`),
-        ilike(teams.coordinatorName, `%${q}%`),
-        ilike(teams.coordinatorEmail, `%${q}%`),
-        ilike(teams.location, `%${q}%`)
-      )!
+        sql`unaccent(${teams.name}) ilike unaccent(${pattern})`,
+        sql`unaccent(${teams.coordinatorName}) ilike unaccent(${pattern})`,
+        sql`unaccent(${teams.coordinatorEmail}) ilike unaccent(${pattern})`,
+        sql`unaccent(coalesce(${teams.location}, '')) ilike unaccent(${pattern})`,
+      )!,
     );
   }
   if (showDuplicates) {
@@ -245,12 +247,18 @@ export default async function AdminPage({
         ? conditions[0]
         : undefined;
 
+  // Sort order
+  const orderClause =
+    sortBy === "data" ? desc(teams.createdAt) :
+    sortBy === "data_asc" ? asc(teams.createdAt) :
+    asc(teams.name);
+
   // Get paginated teams
   const allTeams = await db
     .select()
     .from(teams)
     .where(whereClause)
-    .orderBy(asc(teams.name))
+    .orderBy(orderClause)
     .limit(PAGE_SIZE)
     .offset(offset);
 
@@ -289,6 +297,7 @@ export default async function AdminPage({
     if (showDuplicates) params.set("duplicados", "1");
     if (showInactive) params.set("inativos", "1");
     if (showPending) params.set("pendentes", "1");
+    if (sortBy !== "nome") params.set("ordem", sortBy);
     params.set("page", page.toString());
     return `/admin?${params.toString()}`;
   }
@@ -372,6 +381,15 @@ export default async function AdminPage({
                   className="whitespace-nowrap"
                 >
                   {showInactive ? "Ativas" : "Inativos"}
+                </Button>
+              </Link>
+              <Link href={sortBy === "nome" ? "/admin?ordem=data" : sortBy === "data" ? "/admin?ordem=data_asc" : "/admin"}>
+                <Button
+                  variant={sortBy !== "nome" ? "default" : "outline"}
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  {sortBy === "data" ? "Mais recentes" : sortBy === "data_asc" ? "Mais antigas" : "Ordenar por data"}
                 </Button>
               </Link>
             </div>

@@ -174,6 +174,7 @@ export function AdminTeamTable({
             <TableHead>Equipa</TableHead>
             <TableHead>Coordenador</TableHead>
             <TableHead>Localização</TableHead>
+            <TableHead>Registo</TableHead>
             <TableHead>RGPD</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
@@ -210,6 +211,15 @@ export function AdminTeamTable({
                 </div>
               </TableCell>
               <TableCell>{team.location}</TableCell>
+              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                {team.createdAt
+                  ? new Date(team.createdAt).toLocaleDateString("pt-PT", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })
+                  : "-"}
+              </TableCell>
               <TableCell>
                 {team.rgpdConsent ? (
                   <Badge
