@@ -5,6 +5,8 @@ import { requireAdmin, requireSuperAdmin } from "@/lib/auth/session";
 import { del } from "@vercel/blob";
 import { logAudit } from "@/lib/audit";
 import { recalculateDuplicateFlags } from "@/lib/recalculate-flags";
+import { createMagicLink } from "@/lib/auth/magic-link";
+import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +21,7 @@ const PAGE_SIZE = 25;
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string; duplicados?: string; inativos?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; duplicados?: string; inativos?: string; pendentes?: string }>;
 }) {
   const adminUser = await requireAdmin();
 
@@ -136,10 +138,77 @@ export default async function AdminPage({
     redirect("/admin?inativos=1");
   }
 
-  const { page: pageParam, q: rawQ, duplicados, inativos } = await searchParams;
+  async function approveTeams(formData: FormData) {
+    "use server";
+    const adminUser = await requireAdmin();
+    const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
+
+    if (ids.length === 0) return;
+
+    await db
+      .update(teams)
+      .set({
+        isApproved: true,
+        approvedAt: new Date(),
+        approvedBy: adminUser.email,
+        updatedAt: new Date(),
+      })
+      .where(inArray(teams.id, ids));
+
+    // Send magic link to each approved team's coordinator
+    for (const teamId of ids) {
+      const [team] = await db
+        .select({ email: teams.coordinatorEmail })
+        .from(teams)
+        .where(eq(teams.id, teamId));
+
+      if (team?.email) {
+        const magicLink = await createMagicLink(team.email);
+        if (magicLink) {
+          await sendMagicLinkEmail(team.email, magicLink, "pt");
+        }
+      }
+
+      await logAudit({
+        actorType: adminUser.role === "super_admin" ? "super_admin" : "moderator",
+        actorEmail: adminUser.email,
+        action: "team_approved",
+        teamId,
+      });
+    }
+
+    redirect("/admin?pendentes=1");
+  }
+
+  async function rejectTeams(formData: FormData) {
+    "use server";
+    const adminUser = await requireAdmin();
+    const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
+
+    if (ids.length === 0) return;
+
+    await db
+      .update(teams)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(inArray(teams.id, ids));
+
+    for (const teamId of ids) {
+      await logAudit({
+        actorType: adminUser.role === "super_admin" ? "super_admin" : "moderator",
+        actorEmail: adminUser.email,
+        action: "team_rejected",
+        teamId,
+      });
+    }
+
+    redirect("/admin?pendentes=1");
+  }
+
+  const { page: pageParam, q: rawQ, duplicados, inativos, pendentes } = await searchParams;
   const q = rawQ?.replace(/\s+/g, " ").trim() || undefined;
   const showDuplicates = duplicados === "1";
   const showInactive = inativos === "1";
+  const showPending = pendentes === "1";
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
   const offset = (currentPage - 1) * PAGE_SIZE;
 
@@ -158,8 +227,13 @@ export default async function AdminPage({
   if (showDuplicates) {
     searchConditions.push(isNotNull(teams.duplicateFlag));
   }
-  // Filter by active/inactive
-  searchConditions.push(eq(teams.isActive, !showInactive));
+  if (showPending) {
+    searchConditions.push(eq(teams.isApproved, false));
+    searchConditions.push(eq(teams.isActive, true));
+  } else {
+    // Filter by active/inactive
+    searchConditions.push(eq(teams.isActive, !showInactive));
+  }
   const conditions = searchConditions;
 
   // Build where clause
@@ -193,6 +267,11 @@ export default async function AdminPage({
     .from(teams)
     .where(eq(teams.isActive, true));
 
+  const [{ pendingApproval }] = await db
+    .select({ pendingApproval: count() })
+    .from(teams)
+    .where(and(eq(teams.isApproved, false), eq(teams.isActive, true)));
+
   const [{ pending }] = await db
     .select({ pending: count() })
     .from(teams)
@@ -208,6 +287,7 @@ export default async function AdminPage({
     if (q) params.set("q", q);
     if (showDuplicates) params.set("duplicados", "1");
     if (showInactive) params.set("inativos", "1");
+    if (showPending) params.set("pendentes", "1");
     params.set("page", page.toString());
     return `/admin?${params.toString()}`;
   }
@@ -216,7 +296,7 @@ export default async function AdminPage({
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Painel de Administração</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-3xl font-bold font-mono text-primary">
@@ -225,6 +305,16 @@ export default async function AdminPage({
             <p className="text-sm text-muted-foreground">Equipas Ativas</p>
           </CardContent>
         </Card>
+        <Link href="/admin?pendentes=1">
+          <Card className={pendingApproval > 0 ? "border-orange-500/50 bg-orange-500/5" : ""}>
+            <CardContent className="p-4 text-center">
+              <p className="text-3xl font-bold font-mono text-orange-500">
+                {pendingApproval}
+              </p>
+              <p className="text-sm text-muted-foreground">Aguardam Aprovação</p>
+            </CardContent>
+          </Card>
+        </Link>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-3xl font-bold font-mono text-yellow-500">
@@ -256,6 +346,15 @@ export default async function AdminPage({
                   className="w-full sm:w-[300px]"
                 />
               </form>
+              <Link href={showPending ? "/admin" : "/admin?pendentes=1"}>
+                <Button
+                  variant={showPending ? "default" : "outline"}
+                  size="sm"
+                  className={`whitespace-nowrap ${!showPending && pendingApproval > 0 ? "border-orange-500/50 text-orange-500" : ""}`}
+                >
+                  {showPending ? "Todos" : `Pendentes${pendingApproval > 0 ? ` (${pendingApproval})` : ""}`}
+                </Button>
+              </Link>
               <Link href={showDuplicates ? "/admin" : "/admin?duplicados=1"}>
                 <Button
                   variant={showDuplicates ? "default" : "outline"}
@@ -293,8 +392,11 @@ export default async function AdminPage({
             bulkDeleteAction={bulkDeleteTeams}
             reactivateAction={reactivateTeams}
             permanentDeleteAction={permanentDeleteTeams}
+            approveAction={approveTeams}
+            rejectAction={rejectTeams}
             isInactiveView={showInactive}
             isDuplicatesView={showDuplicates}
+            isPendingView={showPending}
             isSuperAdmin={adminUser.role === "super_admin"}
           />
 

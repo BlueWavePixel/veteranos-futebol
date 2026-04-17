@@ -358,16 +358,16 @@ const translations = {
 
   registerSuccess: {
     title: {
-      pt: "Equipa Registada!",
-      br: "Time Registrado!",
-      es: "¡Equipo Registrado!",
-      en: "Team Registered!",
+      pt: "Registo Recebido!",
+      br: "Registro Recebido!",
+      es: "¡Registro Recibido!",
+      en: "Registration Received!",
     },
     desc: {
-      pt: "Enviámos um email com um link de acesso. Clique no link para confirmar o seu email e aceder ao painel da sua equipa.",
-      br: "Enviamos um e-mail com um link de acesso. Clique no link para confirmar o seu e-mail e acessar o painel do seu time.",
-      es: "Te hemos enviado un correo con un enlace de acceso. Haz clic en el enlace para confirmar tu correo y acceder al panel de tu equipo.",
-      en: "We've sent you an email with an access link. Click the link to confirm your email and access your team's dashboard.",
+      pt: "O seu registo foi recebido e está a aguardar aprovação de um administrador. Receberá um email quando a sua equipa for aprovada.",
+      br: "O seu registro foi recebido e está aguardando aprovação de um administrador. Receberá um e-mail quando o seu time for aprovado.",
+      es: "Tu registro ha sido recibido y está pendiente de aprobación por un administrador. Recibirás un correo cuando tu equipo sea aprobado.",
+      en: "Your registration has been received and is pending admin approval. You'll receive an email when your team is approved.",
     },
     viewAll: {
       pt: "Ver Todas as Equipas",

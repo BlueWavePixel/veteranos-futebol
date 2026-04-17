@@ -492,6 +492,14 @@ export function TeamForm({
         <RgpdConsent checked={rgpdConsent} onCheckedChange={setRgpdConsent} />
       )}
 
+      {/* Honeypot — invisible to real users, bots fill it */}
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+        <label htmlFor="website_url">Website</label>
+        <input type="text" id="website_url" name="website_url" tabIndex={-1} autoComplete="off" />
+        <label htmlFor="fax_number">Fax</label>
+        <input type="text" id="fax_number" name="fax_number" tabIndex={-1} autoComplete="off" />
+      </div>
+
       {/* Turnstile CAPTCHA */}
       {turnstileSiteKey && (
         <TurnstileWidget siteKey={turnstileSiteKey} />

@@ -20,8 +20,11 @@ type Props = {
   bulkDeleteAction: (formData: FormData) => Promise<void>;
   reactivateAction?: (formData: FormData) => Promise<void>;
   permanentDeleteAction?: (formData: FormData) => Promise<void>;
+  approveAction?: (formData: FormData) => Promise<void>;
+  rejectAction?: (formData: FormData) => Promise<void>;
   isInactiveView?: boolean;
   isDuplicatesView?: boolean;
+  isPendingView?: boolean;
   isSuperAdmin?: boolean;
 };
 
@@ -31,8 +34,11 @@ export function AdminTeamTable({
   bulkDeleteAction,
   reactivateAction,
   permanentDeleteAction,
+  approveAction,
+  rejectAction,
   isInactiveView = false,
   isDuplicatesView = false,
+  isPendingView = false,
   isSuperAdmin = false,
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -70,7 +76,30 @@ export function AdminTeamTable({
             >
               Limpar
             </Button>
-            {isInactiveView && reactivateAction ? (
+            {isPendingView && approveAction && rejectAction ? (
+              <>
+                <form action={approveAction}>
+                  <input
+                    type="hidden"
+                    name="teamIds"
+                    value={Array.from(selected).join(",")}
+                  />
+                  <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700">
+                    Aprovar ({selected.size})
+                  </Button>
+                </form>
+                <form action={rejectAction}>
+                  <input
+                    type="hidden"
+                    name="teamIds"
+                    value={Array.from(selected).join(",")}
+                  />
+                  <Button type="submit" variant="destructive" size="sm">
+                    Rejeitar ({selected.size})
+                  </Button>
+                </form>
+              </>
+            ) : isInactiveView && reactivateAction ? (
               <form action={reactivateAction}>
                 <input
                   type="hidden"
@@ -200,25 +229,35 @@ export function AdminTeamTable({
               </TableCell>
               <TableCell>
                 <div className="flex gap-1">
+                  {isPendingView && approveAction && (
+                    <form action={approveAction}>
+                      <input type="hidden" name="teamIds" value={team.id} />
+                      <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700">
+                        Aprovar
+                      </Button>
+                    </form>
+                  )}
                   <Link href={`/admin/equipas/${team.id}`}>
                     <Button variant="ghost" size="sm">
                       Editar
                     </Button>
                   </Link>
-                  <Link href={`/admin/transferir/${team.id}`}>
-                    <Button variant="ghost" size="sm">
-                      Transferir
-                    </Button>
-                  </Link>
-                  <form action={deleteAction}>
-                    <input type="hidden" name="teamId" value={team.id} />
+                  {!isPendingView && (
+                    <Link href={`/admin/transferir/${team.id}`}>
+                      <Button variant="ghost" size="sm">
+                        Transferir
+                      </Button>
+                    </Link>
+                  )}
+                  <form action={isPendingView && rejectAction ? rejectAction : deleteAction}>
+                    <input type="hidden" name={isPendingView ? "teamIds" : "teamId"} value={team.id} />
                     <Button
                       type="submit"
                       variant="ghost"
                       size="sm"
                       className="text-destructive hover:text-destructive"
                     >
-                      Apagar
+                      {isPendingView ? "Rejeitar" : "Apagar"}
                     </Button>
                   </form>
                 </div>

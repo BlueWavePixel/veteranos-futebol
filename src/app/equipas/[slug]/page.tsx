@@ -49,7 +49,22 @@ export default async function TeamPage({ params }: Props) {
     .orderBy(matches.matchDate);
 
   const coordinatorEmail = await getCoordinatorEmail();
-  const isAuthenticated = !!coordinatorEmail;
+  let canViewContacts = false;
+  if (coordinatorEmail) {
+    // Check if coordinator has at least one approved team
+    const [approvedTeam] = await db
+      .select({ id: teams.id })
+      .from(teams)
+      .where(
+        and(
+          eq(teams.coordinatorEmail, coordinatorEmail),
+          eq(teams.isApproved, true),
+          eq(teams.isActive, true),
+        ),
+      );
+    canViewContacts = !!approvedTeam;
+  }
+  const isAuthenticated = canViewContacts;
 
   const hasKitPrimary =
     team.kitPrimaryShirt || team.kitPrimaryShorts || team.kitPrimarySocks || team.kitPrimary;

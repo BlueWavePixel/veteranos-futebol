@@ -3,15 +3,12 @@ import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
 import { generateSlug } from "@/lib/slug";
 import { extractTeamFields } from "@/lib/form-helpers";
-import { createMagicLink } from "@/lib/auth/magic-link";
-import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
 import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { t } from "@/lib/i18n/translations";
-import type { Locale } from "@/lib/i18n/translations";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { logSecurityEvent } from "@/lib/security/audit";
 async function registerTeam(
@@ -35,16 +32,43 @@ async function registerTeam(
     return { error: "É necessário aceitar a Política de Privacidade." };
   }
 
-  // Verify Turnstile — require if configured
-  const turnstileResponse = formData.get("cf-turnstile-response") as string;
+  // Get client IP once for all security checks
   const headerStore = await headers();
   const ip =
     headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     headerStore.get("x-real-ip") ||
     "unknown";
 
+  // Honeypot check — bots fill hidden fields
+  const honeypot1 = formData.get("website_url") as string;
+  const honeypot2 = formData.get("fax_number") as string;
+  if (honeypot1 || honeypot2) {
+    await logSecurityEvent({
+      eventType: "honeypot_triggered",
+      email: coordinatorEmail,
+      ip,
+      details: { honeypot1, honeypot2 },
+    });
+    // Fake success — don't reveal detection
+    redirect("/registar/sucesso");
+  }
+
+  // Suspicious pattern detection
+  const suspiciousPatterns = [
+    /^test/i, /^fake/i, /^spam/i, /^asdf/i, /^qwerty/i,
+    /^aaa+/i, /^xxx+/i, /^123/,
+  ];
+  const nameIsSuspicious = suspiciousPatterns.some((p) => p.test(fields.name));
+  const tempEmailDomains = [
+    "tempmail", "guerrillamail", "mailinator", "throwaway",
+    "yopmail", "sharklasers", "grr.la", "dispostable",
+    "maildrop", "10minutemail", "trashmail",
+  ];
+  const emailDomain = coordinatorEmail.split("@")[1] || "";
+  const emailIsSuspicious = tempEmailDomains.some((d) => emailDomain.includes(d));
+
   // Verify Turnstile — only enforce if token is provided
-  // (NEXT_PUBLIC var is baked at build time; if widget didn't render, no token)
+  const turnstileResponse = formData.get("cf-turnstile-response") as string;
   if (process.env.TURNSTILE_SECRET_KEY && turnstileResponse) {
     const valid = await verifyTurnstile(turnstileResponse, ip);
     if (!valid) {
@@ -79,25 +103,28 @@ async function registerTeam(
     slug = `${slug}-${Date.now().toString(36)}`;
   }
 
+  if (nameIsSuspicious || emailIsSuspicious) {
+    await logSecurityEvent({
+      eventType: "suspicious_registration",
+      email: coordinatorEmail,
+      ip,
+      details: {
+        teamName: fields.name,
+        nameIsSuspicious,
+        emailIsSuspicious,
+        emailDomain,
+      },
+    });
+  }
+
   await db.insert(teams).values({
     slug,
     ...fields,
     coordinatorEmail,
     rgpdConsent: true,
     rgpdConsentAt: new Date(),
+    isApproved: false,
   });
-
-  const cookieStore = await cookies();
-  const localeCookieValue = cookieStore.get("locale")?.value;
-  const emailLocale: Locale =
-    localeCookieValue === "es" || localeCookieValue === "br"
-      ? (localeCookieValue as Locale)
-      : "pt";
-
-  const magicLink = await createMagicLink(coordinatorEmail);
-  if (magicLink) {
-    await sendMagicLinkEmail(coordinatorEmail, magicLink, emailLocale);
-  }
 
   redirect("/registar/sucesso");
 }
