@@ -96,6 +96,13 @@ export async function sendAnnouncementEmail(
 
     </div>
 
+    <!-- Sponsor -->
+    <div style="border-top: 1px solid #222; padding: 16px 0; text-align: center;">
+      <p style="color: #888; font-size: 12px; margin: 0;">Patrocinado por</p>
+      <a href="https://bluewavepixel.pt" style="color: #16a34a; font-size: 14px; font-weight: 600; text-decoration: none;">BlueWavePixel</a>
+      <p style="color: #555; font-size: 11px; margin: 4px 0 0;">bluewavepixel.pt</p>
+    </div>
+
     <!-- Footer -->
     <div style="border-top: 1px solid #222; padding-top: 20px; text-align: center;">
       <p style="color: #666; font-size: 12px; margin: 0;">
