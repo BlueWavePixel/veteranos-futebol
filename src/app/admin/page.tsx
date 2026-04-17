@@ -224,6 +224,8 @@ export default async function AdminPage({
         sql`unaccent(${teams.coordinatorName}) ilike unaccent(${pattern})`,
         sql`unaccent(${teams.coordinatorEmail}) ilike unaccent(${pattern})`,
         sql`unaccent(coalesce(${teams.location}, '')) ilike unaccent(${pattern})`,
+        sql`unaccent(coalesce(${teams.concelho}, '')) ilike unaccent(${pattern})`,
+        sql`unaccent(coalesce(${teams.distrito}, '')) ilike unaccent(${pattern})`,
       )!,
     );
   }
@@ -345,10 +347,14 @@ export default async function AdminPage({
 
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle>Todas as Equipas</CardTitle>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <form action="/admin" method="GET" className="flex-1 sm:flex-initial">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <CardTitle>Todas as Equipas</CardTitle>
+              <form action="/admin" method="GET" className="w-full sm:w-auto">
+                {showPending && <input type="hidden" name="pendentes" value="1" />}
+                {showInactive && <input type="hidden" name="inativos" value="1" />}
+                {showDuplicates && <input type="hidden" name="duplicados" value="1" />}
+                {sortBy !== "nome" && <input type="hidden" name="ordem" value={sortBy} />}
                 <Input
                   name="q"
                   placeholder="Pesquisar equipa, coordenador, email..."
@@ -356,6 +362,8 @@ export default async function AdminPage({
                   className="w-full sm:w-[300px]"
                 />
               </form>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
               <Link href={showPending ? "/admin" : "/admin?pendentes=1"}>
                 <Button
                   variant={showPending ? "default" : "outline"}
@@ -389,7 +397,7 @@ export default async function AdminPage({
                   size="sm"
                   className="whitespace-nowrap"
                 >
-                  {sortBy === "data" ? "Mais recentes" : sortBy === "data_asc" ? "Mais antigas" : "Ordenar por data"}
+                  {sortBy === "data" ? "Mais recentes" : sortBy === "data_asc" ? "Mais antigas" : "Por data"}
                 </Button>
               </Link>
             </div>
