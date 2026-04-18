@@ -65,6 +65,16 @@ export function TeamForm({
       setError(t("form", "rgpdRequired", locale));
       return;
     }
+    // Client-side Turnstile check — scroll to widget if missing
+    if (turnstileSiteKey) {
+      const token = formData.get("cf-turnstile-response");
+      if (!token) {
+        setError("Complete a verificação de segurança no fundo do formulário (caixa com 'Não sou um robô').");
+        const widget = document.querySelector('[data-sitekey], iframe[src*="turnstile"]');
+        widget?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+    }
     setError(null);
     setLoading(true);
     formData.set("rgpdConsent", rgpdConsent ? "true" : "false");
@@ -502,7 +512,13 @@ export function TeamForm({
 
       {/* Turnstile CAPTCHA */}
       {turnstileSiteKey && (
-        <TurnstileWidget siteKey={turnstileSiteKey} />
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <p className="text-sm font-medium text-center mb-2">Verificação de segurança</p>
+          <p className="text-xs text-muted-foreground text-center mb-3">
+            Para prevenir registos automáticos, complete a verificação abaixo:
+          </p>
+          <TurnstileWidget siteKey={turnstileSiteKey} />
+        </div>
       )}
 
       <Button type="submit" size="lg" className="w-full" disabled={loading}>
