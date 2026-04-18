@@ -140,7 +140,7 @@ async function registerTeam(
 
 export default async function RegistarPage() {
   const locale = await getLocale();
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

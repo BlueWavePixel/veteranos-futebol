@@ -4,7 +4,7 @@ export async function verifyTurnstile(
   token: string,
   ip?: string | null
 ): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY;
+  const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
 
   // Skip in dev if no secret configured
   if (!secret) {

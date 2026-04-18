@@ -32,7 +32,7 @@ export function LoginForm({ locale }: { locale: Locale }) {
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
 
   const renderWidget = useCallback(() => {
     if (!siteKey || !turnstileRef.current || !window.turnstile) return;
