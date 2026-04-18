@@ -5,7 +5,7 @@ import { requireAdmin, requireSuperAdmin } from "@/lib/auth/session";
 import { del } from "@vercel/blob";
 import { logAudit } from "@/lib/audit";
 import { recalculateDuplicateFlags } from "@/lib/recalculate-flags";
-import { createMagicLink } from "@/lib/auth/magic-link";
+import { createMagicLink, APPROVAL_TOKEN_EXPIRY_MINUTES } from "@/lib/auth/magic-link";
 import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -164,9 +164,10 @@ export default async function AdminPage({
         .where(eq(teams.id, teamId));
 
       if (team?.email) {
-        const magicLink = await createMagicLink(team.email);
+        // Approval emails get 7-day expiry — coordinator may not check email immediately
+        const magicLink = await createMagicLink(team.email, APPROVAL_TOKEN_EXPIRY_MINUTES);
         if (magicLink) {
-          await sendMagicLinkEmail(team.email, magicLink, "pt");
+          await sendMagicLinkEmail(team.email, magicLink, "pt", APPROVAL_TOKEN_EXPIRY_MINUTES);
         }
       }
 

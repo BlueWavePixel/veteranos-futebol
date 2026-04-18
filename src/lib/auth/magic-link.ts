@@ -4,6 +4,7 @@ import { authTokens, teams, admins } from "@/lib/db/schema";
 import { eq, lt } from "drizzle-orm";
 
 const TOKEN_EXPIRY_MINUTES = 30;
+export const APPROVAL_TOKEN_EXPIRY_MINUTES = 7 * 24 * 60; // 7 days
 
 export function generateToken(): string {
   return randomBytes(32).toString("hex");
@@ -17,7 +18,10 @@ export function isTokenExpired(expiresAt: Date): boolean {
   return new Date() > expiresAt;
 }
 
-export async function createMagicLink(email: string): Promise<string | null> {
+export async function createMagicLink(
+  email: string,
+  expiryMinutes: number = TOKEN_EXPIRY_MINUTES,
+): Promise<string | null> {
   const normalizedEmail = email.toLowerCase().trim();
 
   // Check if email belongs to a coordinator or admin
@@ -36,7 +40,7 @@ export async function createMagicLink(email: string): Promise<string | null> {
 
   const token = generateToken();
   const hash = createTokenHash(token);
-  const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
+  const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
 
   await db.insert(authTokens).values({
     email: normalizedEmail,

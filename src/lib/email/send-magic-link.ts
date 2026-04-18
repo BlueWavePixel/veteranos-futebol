@@ -53,9 +53,30 @@ const emailStrings: Record<
 export async function sendMagicLinkEmail(
   email: string,
   magicLink: string,
-  locale: Locale = "pt"
+  locale: Locale = "pt",
+  expiryMinutes: number = 30,
 ): Promise<boolean> {
   const txt = emailStrings[locale];
+  // Override expiry text based on duration
+  let expiryText = txt.expiry;
+  if (expiryMinutes >= 60 * 24) {
+    const days = Math.round(expiryMinutes / (60 * 24));
+    const labels: Record<Locale, string> = {
+      pt: `Este link expira em ${days} dias.`,
+      br: `Este link expira em ${days} dias.`,
+      es: `Este enlace expira en ${days} días.`,
+      en: `This link expires in ${days} days.`,
+    };
+    expiryText = labels[locale];
+  } else if (expiryMinutes !== 30) {
+    const labels: Record<Locale, string> = {
+      pt: `Este link expira em ${expiryMinutes} minutos.`,
+      br: `Este link expira em ${expiryMinutes} minutos.`,
+      es: `Este enlace expira en ${expiryMinutes} minutos.`,
+      en: `This link expires in ${expiryMinutes} minutes.`,
+    };
+    expiryText = labels[locale];
+  }
   try {
     await getTransporter().sendMail({
       from: `"Veteranos - Clubes de Futebol" <${process.env.GMAIL_USER}>`,
@@ -68,7 +89,7 @@ export async function sendMagicLinkEmail(
           <a href="${magicLink}" style="display: inline-block; padding: 12px 24px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">
             ${txt.button}
           </a>
-          <p style="color: #666; font-size: 14px;">${txt.expiry}</p>
+          <p style="color: #666; font-size: 14px;">${expiryText}</p>
           <p style="color: #666; font-size: 14px;">${txt.ignore}</p>
         </div>
       `,
