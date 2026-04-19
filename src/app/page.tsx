@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
-import { eq, count } from "drizzle-orm";
+import { eq, count, and } from "drizzle-orm";
 import { MapWrapper } from "@/components/map/map-wrapper";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -31,13 +31,13 @@ export default async function HomePage() {
       fieldName: teams.fieldName,
     })
     .from(teams)
-    .where(eq(teams.isActive, true))
+    .where(and(eq(teams.isActive, true), eq(teams.isApproved, true)))
     .orderBy(teams.name);
 
   const [{ total }] = await db
     .select({ total: count() })
     .from(teams)
-    .where(eq(teams.isActive, true));
+    .where(and(eq(teams.isActive, true), eq(teams.isApproved, true)));
 
   const teamsOnMap = allTeams.filter((team) => team.latitude && team.longitude).length;
 

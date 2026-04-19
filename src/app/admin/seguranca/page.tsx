@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
+import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
+import { CsrfField } from "@/components/auth/csrf-field";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +37,11 @@ export default async function SegurancaPage({
   searchParams: Promise<{ page?: string; tipo?: string; resolvidos?: string }>;
 }) {
   const adminUser = await requireSuperAdmin();
+  const csrf = await getSessionCsrf();
 
   async function resolveEvent(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const admin = await requireSuperAdmin();
     const eventId = formData.get("eventId") as string;
     if (eventId) {
@@ -50,6 +54,7 @@ export default async function SegurancaPage({
 
   async function resolveAllThreats(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const admin = await requireSuperAdmin();
     const ids = (formData.get("eventIds") as string).split(",").filter(Boolean);
     if (ids.length > 0) {
@@ -356,6 +361,7 @@ export default async function SegurancaPage({
                     </div>
                     {isThreat && !isResolved && (
                       <form action={resolveEvent} className="shrink-0">
+                        <CsrfField token={csrf} />
                         <input type="hidden" name="eventId" value={log.id} />
                         <Button type="submit" variant="outline" size="sm" className="text-xs">
                           Resolvido

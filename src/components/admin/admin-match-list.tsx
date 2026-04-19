@@ -7,6 +7,7 @@ import type { Match } from "@/lib/db/schema";
 type Props = {
   matches: Match[];
   deleteAction: (formData: FormData) => Promise<void>;
+  csrfToken?: string | null;
 };
 
 function formatDate(date: Date) {
@@ -24,7 +25,7 @@ function formatTime(date: Date) {
   return d.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function AdminMatchList({ matches, deleteAction }: Props) {
+export function AdminMatchList({ matches, deleteAction, csrfToken }: Props) {
   if (matches.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
@@ -80,6 +81,7 @@ export function AdminMatchList({ matches, deleteAction }: Props) {
               )}
             </div>
             <form action={deleteAction}>
+              {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
               <input type="hidden" name="matchId" value={match.id} />
               <Button
                 type="submit"

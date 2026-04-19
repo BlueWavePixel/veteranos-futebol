@@ -37,7 +37,10 @@ export default async function DeletePage({ params }: Props) {
     const csrfValid = await validateCsrf(csrfToken);
     if (!csrfValid) return;
 
-    await db.delete(teams).where(eq(teams.id, teamId));
+    // Defense-in-depth: re-check ownership inside action
+    await db
+      .delete(teams)
+      .where(and(eq(teams.id, teamId), eq(teams.coordinatorEmail, email)));
 
     await logAudit({
       actorType: "coordinator",

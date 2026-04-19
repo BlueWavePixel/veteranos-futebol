@@ -52,10 +52,11 @@ export async function createMagicLink(
   return `${appUrl}/api/auth/verify?token=${token}`;
 }
 
-// Grace period: allow token reuse within 5 minutes of first use
+// Grace period: allow token reuse within 60 seconds of first use
 // This handles email clients (Hotmail/Outlook Safe Links) that
-// pre-fetch links automatically, consuming the token before the user clicks
-const GRACE_PERIOD_MS = 15 * 60 * 1000;
+// pre-fetch links automatically, consuming the token before the user clicks.
+// Kept short to reduce replay attack window if the link is intercepted.
+const GRACE_PERIOD_MS = 60 * 1000;
 
 /** Opportunistic cleanup — 10% chance of running per verification call */
 async function maybeCleanupExpiredTokens(): Promise<void> {

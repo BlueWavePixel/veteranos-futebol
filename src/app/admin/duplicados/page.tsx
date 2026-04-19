@@ -4,6 +4,7 @@ import { eq, desc, inArray, count, or } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { mergeTeams } from "@/lib/duplicates/merge";
 import { redirect } from "next/navigation";
+import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
 import { Card, CardContent } from "@/components/ui/card";
 import { DuplicateCompare } from "@/components/admin/duplicate-compare";
 import type { Team } from "@/lib/db/schema";
@@ -12,10 +13,12 @@ export const dynamic = "force-dynamic";
 
 export default async function DuplicadosPage() {
   await requireAdmin();
+  const csrf = await getSessionCsrf();
 
   // Server actions
   async function resolveNotDuplicate(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const pairId = formData.get("pairId") as string;
 
@@ -33,6 +36,7 @@ export default async function DuplicadosPage() {
 
   async function resolveConfirmedDuplicate(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const pairId = formData.get("pairId") as string;
 
@@ -50,6 +54,7 @@ export default async function DuplicadosPage() {
 
   async function mergeDuplicate(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const pairId = formData.get("pairId") as string;
     const primaryId = formData.get("primaryId") as string;
@@ -161,6 +166,7 @@ export default async function DuplicadosPage() {
                   resolveNotDuplicateAction={resolveNotDuplicate}
                   resolveConfirmedAction={resolveConfirmedDuplicate}
                   mergeAction={mergeDuplicate}
+                  csrfToken={csrf}
                 />
               );
             })}
@@ -188,6 +194,7 @@ export default async function DuplicadosPage() {
                   resolveNotDuplicateAction={resolveNotDuplicate}
                   resolveConfirmedAction={resolveConfirmedDuplicate}
                   mergeAction={mergeDuplicate}
+                  csrfToken={csrf}
                 />
               );
             })}

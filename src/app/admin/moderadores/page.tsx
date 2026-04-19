@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import { requireSuperAdmin } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { logAudit } from "@/lib/audit";
+import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
+import { CsrfField } from "@/components/auth/csrf-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,11 +22,13 @@ import {
 
 export default async function ModeradoresPage() {
   const superAdmin = await requireSuperAdmin();
+  const csrf = await getSessionCsrf();
 
   const allAdmins = await db.select().from(admins).orderBy(admins.name);
 
   async function addModerator(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
 
     const email = (formData.get("email") as string).toLowerCase().trim();
     const name = (formData.get("name") as string).trim();
@@ -44,6 +48,7 @@ export default async function ModeradoresPage() {
 
   async function removeModerator(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
 
     const id = formData.get("id") as string;
     const [admin] = await db.select().from(admins).where(eq(admins.id, id));
@@ -100,6 +105,7 @@ export default async function ModeradoresPage() {
                   <TableCell>
                     {admin.role !== "super_admin" && (
                       <form action={removeModerator}>
+                        <CsrfField token={csrf} />
                         <input type="hidden" name="id" value={admin.id} />
                         <Button variant="destructive" size="sm" type="submit">
                           Remover
@@ -120,6 +126,7 @@ export default async function ModeradoresPage() {
         </CardHeader>
         <CardContent>
           <form action={addModerator} className="space-y-4">
+            <CsrfField token={csrf} />
             <div>
               <Label htmlFor="name">Nome *</Label>
               <Input id="name" name="name" required />

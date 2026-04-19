@@ -1,5 +1,16 @@
 import { extractCoordinates } from "@/lib/geo";
 
+/** Truncate input to a max length to prevent DoS via huge text fields. */
+function limit(value: string | null, max: number): string | null {
+  if (!value) return value;
+  return value.length > max ? value.slice(0, max) : value;
+}
+
+function getField(formData: FormData, name: string, max: number): string | null {
+  const raw = formData.get(name) as string | null;
+  return raw ? limit(raw, max) : null;
+}
+
 /**
  * Extract team fields from form data.
  * @param existingCoords — pass current lat/lng when updating, so they're
@@ -46,45 +57,45 @@ export async function extractTeamFields(
   const distrito = (formData.get("distrito") as string) || null;
 
   return {
-    name: ((formData.get("name") as string) || "").trim(),
-    logoUrl: (formData.get("logoUrl") as string) || null,
-    teamPhotoUrl: (formData.get("teamPhotoUrl") as string) || null,
-    coordinatorName: ((formData.get("coordinatorName") as string) || "").trim(),
-    coordinatorAltName: (formData.get("coordinatorAltName") as string) || null,
-    coordinatorPhone: (formData.get("coordinatorPhone") as string) || null,
-    coordinatorAltPhone: (formData.get("coordinatorAltPhone") as string) || null,
+    name: limit(((formData.get("name") as string) || "").trim(), 150) || "",
+    logoUrl: getField(formData, "logoUrl", 500),
+    teamPhotoUrl: getField(formData, "teamPhotoUrl", 500),
+    coordinatorName: limit(((formData.get("coordinatorName") as string) || "").trim(), 150) || "",
+    coordinatorAltName: getField(formData, "coordinatorAltName", 150),
+    coordinatorPhone: getField(formData, "coordinatorPhone", 30),
+    coordinatorAltPhone: getField(formData, "coordinatorAltPhone", 30),
     dinnerThirdParty: formData.get("dinnerThirdParty") === "on",
     // Team types
     teamTypeF11: formData.get("teamTypeF11") === "on",
     teamTypeF7: formData.get("teamTypeF7") === "on",
     teamTypeFutsal: formData.get("teamTypeFutsal") === "on",
     // Kit primary
-    kitPrimaryShirt: (formData.get("kitPrimaryShirt") as string) || null,
-    kitPrimaryShorts: (formData.get("kitPrimaryShorts") as string) || null,
-    kitPrimarySocks: (formData.get("kitPrimarySocks") as string) || null,
+    kitPrimaryShirt: getField(formData, "kitPrimaryShirt", 100),
+    kitPrimaryShorts: getField(formData, "kitPrimaryShorts", 100),
+    kitPrimarySocks: getField(formData, "kitPrimarySocks", 100),
     // Kit secondary
-    kitSecondaryShirt: (formData.get("kitSecondaryShirt") as string) || null,
-    kitSecondaryShorts: (formData.get("kitSecondaryShorts") as string) || null,
-    kitSecondarySocks: (formData.get("kitSecondarySocks") as string) || null,
+    kitSecondaryShirt: getField(formData, "kitSecondaryShirt", 100),
+    kitSecondaryShorts: getField(formData, "kitSecondaryShorts", 100),
+    kitSecondarySocks: getField(formData, "kitSecondarySocks", 100),
     // Field
-    fieldName: (formData.get("fieldName") as string) || null,
-    fieldAddress: (formData.get("fieldAddress") as string) || null,
-    fieldType: (formData.get("fieldType") as string) || null,
+    fieldName: getField(formData, "fieldName", 200),
+    fieldAddress: getField(formData, "fieldAddress", 300),
+    fieldType: getField(formData, "fieldType", 50),
     // Location
-    localidade: (formData.get("localidade") as string) || null,
+    localidade: getField(formData, "localidade", 150),
     location: [concelho, distrito].filter(Boolean).join(" / "),
-    concelho,
-    distrito,
-    mapsUrl,
+    concelho: limit(concelho, 100) || "",
+    distrito: limit(distrito, 100),
+    mapsUrl: limit(mapsUrl, 500),
     latitude,
     longitude,
     // Other fields
     foundedYear: foundedYear ? parseInt(foundedYear, 10) : null,
     playerCount: playerCount ? parseInt(playerCount, 10) : null,
-    ageGroup: formData.getAll("ageGroup").filter(Boolean).join(", ") || null,
-    socialFacebook: (formData.get("socialFacebook") as string) || null,
-    socialInstagram: (formData.get("socialInstagram") as string) || null,
-    trainingSchedule: (formData.get("trainingSchedule") as string) || null,
-    notes: (formData.get("notes") as string) || null,
+    ageGroup: limit(formData.getAll("ageGroup").filter(Boolean).join(", ") || null, 200),
+    socialFacebook: getField(formData, "socialFacebook", 300),
+    socialInstagram: getField(formData, "socialInstagram", 300),
+    trainingSchedule: getField(formData, "trainingSchedule", 300),
+    notes: getField(formData, "notes", 2000),
   };
 }

@@ -2,6 +2,9 @@
 
 import dynamic from "next/dynamic";
 import type { Locale } from "@/lib/i18n/translations";
+import type { TeamMapData } from "./portugal-map";
+
+export type { TeamMapData };
 
 const PortugalMap = dynamic(
   () => import("./portugal-map").then((mod) => mod.PortugalMap),
@@ -12,24 +15,6 @@ const PortugalMap = dynamic(
     ),
   }
 );
-
-export type TeamMapData = {
-  id: string;
-  slug: string;
-  name: string;
-  location: string | null;
-  latitude: string | null;
-  longitude: string | null;
-  logoUrl: string | null;
-  distrito: string | null;
-  teamTypeF11: boolean | null;
-  teamTypeF7: boolean | null;
-  teamTypeFutsal: boolean | null;
-  dinnerThirdParty: boolean | null;
-  kitPrimaryShirt: string | null;
-  kitSecondaryShirt: string | null;
-  fieldName: string | null;
-};
 
 export function MapWrapper({
   teams,

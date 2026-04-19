@@ -54,6 +54,7 @@ type Props = {
   resolveNotDuplicateAction: (formData: FormData) => Promise<void>;
   resolveConfirmedAction: (formData: FormData) => Promise<void>;
   mergeAction: (formData: FormData) => Promise<void>;
+  csrfToken?: string | null;
 };
 
 function CompareField({
@@ -93,6 +94,7 @@ export function DuplicateCompare({
   resolveNotDuplicateAction,
   resolveConfirmedAction,
   mergeAction,
+  csrfToken,
 }: Props) {
   const isSelfCheck = teamA.id === teamB.id;
   const [primaryId, setPrimaryId] = useState<string>(
@@ -316,6 +318,7 @@ export function DuplicateCompare({
 
           <div className="flex gap-2 flex-wrap">
             <form action={resolveNotDuplicateAction}>
+              {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
               <input type="hidden" name="pairId" value={pair.id} />
               <Button type="submit" variant="outline" size="sm">
                 Não é Duplicado
@@ -323,6 +326,7 @@ export function DuplicateCompare({
             </form>
 
             <form action={resolveConfirmedAction}>
+              {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
               <input type="hidden" name="pairId" value={pair.id} />
               <Button
                 type="submit"
@@ -336,6 +340,7 @@ export function DuplicateCompare({
 
             {!isSelfCheck && (
               <form action={mergeAction}>
+                {csrfToken && <input type="hidden" name="_csrf" value={csrfToken} />}
                 <input type="hidden" name="pairId" value={pair.id} />
                 <input type="hidden" name="primaryId" value={primaryId} />
                 <input type="hidden" name="secondaryId" value={secondaryId} />

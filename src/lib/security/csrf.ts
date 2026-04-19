@@ -31,3 +31,16 @@ export async function validateCsrf(formToken: string): Promise<boolean> {
 function timingSafeEqual(a: Buffer, b: Buffer): boolean {
   return cryptoTimingSafeEqual(a, b);
 }
+
+/**
+ * Throws if the CSRF token in FormData is invalid or missing.
+ * Use in admin server actions to prevent cross-site request forgery.
+ * Vercel deployments share *.vercel.app — sameSite=strict is NOT sufficient.
+ */
+export async function requireCsrf(formData: FormData): Promise<void> {
+  const token = formData.get("_csrf") as string;
+  const valid = await validateCsrf(token);
+  if (!valid) {
+    throw new Error("CSRF inválido: a sua sessão expirou ou o pedido é inválido. Recarregue a página.");
+  }
+}

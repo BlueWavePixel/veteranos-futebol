@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { getCoordinatorEmail } from "@/lib/auth/session";
+import { checkRateLimit } from "@/lib/security/rate-limiter";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB max
 
@@ -9,6 +10,19 @@ export async function POST(request: NextRequest) {
     const email = await getCoordinatorEmail();
     if (!email) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+
+    // Rate limit: 20 uploads per IP per hour
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const rl = checkRateLimit(`upload:${ip}`, 20, 60 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Demasiados uploads. Tente novamente mais tarde." },
+        { status: 429 },
+      );
     }
 
     const formData = await request.formData();
@@ -29,16 +43,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SVG removed: can contain inline scripts for stored XSS
     const allowedTypes = [
       "image/jpeg",
       "image/png",
       "image/webp",
       "image/gif",
-      "image/svg+xml",
     ];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Tipo de ficheiro não suportado. Use JPG, PNG, WebP, GIF ou SVG." },
+        { error: "Tipo de ficheiro não suportado. Use JPG, PNG, WebP ou GIF." },
         { status: 400 }
       );
     }
@@ -49,7 +63,6 @@ export async function POST(request: NextRequest) {
       "image/png": "png",
       "image/webp": "webp",
       "image/gif": "gif",
-      "image/svg+xml": "svg",
     };
     const ext = extMap[file.type] || "jpg";
     const filename = `${type || "image"}-${Date.now()}.${ext}`;

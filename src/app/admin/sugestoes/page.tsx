@@ -4,6 +4,8 @@ import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { notifyCoordinatorReply } from "@/lib/email/send-notification";
+import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
+import { CsrfField } from "@/components/auth/csrf-field";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 
 export default async function AdminSugestoesPage() {
   await requireAdmin();
+  const csrf = await getSessionCsrf();
 
   const allSuggestions = await db
     .select({
@@ -38,6 +41,7 @@ export default async function AdminSugestoesPage() {
 
   async function updateSuggestion(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
 
     const id = formData.get("id") as string;
@@ -108,6 +112,7 @@ export default async function AdminSugestoesPage() {
               s={s}
               teamName={teamName}
               updateAction={updateSuggestion}
+              csrf={csrf}
             />
           ))}
         </div>
@@ -126,6 +131,7 @@ export default async function AdminSugestoesPage() {
                 s={s}
                 teamName={teamName}
                 updateAction={updateSuggestion}
+                csrf={csrf}
               />
             ))}
           </div>
@@ -139,10 +145,12 @@ function SuggestionCard({
   s,
   teamName,
   updateAction,
+  csrf,
 }: {
   s: typeof import("@/lib/db/schema").suggestions.$inferSelect;
   teamName: string | null;
   updateAction: (formData: FormData) => Promise<void>;
+  csrf: string | null;
 }) {
   return (
     <Card>
@@ -181,6 +189,7 @@ function SuggestionCard({
         <p className="text-sm mb-4">{s.message}</p>
 
         <form action={updateAction} className="space-y-3">
+          <CsrfField token={csrf} />
           <input type="hidden" name="id" value={s.id} />
           <div className="flex gap-3 items-end">
             <div className="flex-1">

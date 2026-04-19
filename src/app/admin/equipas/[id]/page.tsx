@@ -7,6 +7,7 @@ import { TeamForm } from "@/components/teams/team-form";
 import { AdminMatchList } from "@/components/admin/admin-match-list";
 import { extractTeamFields } from "@/lib/form-helpers";
 import { logAudit } from "@/lib/audit";
+import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ type Props = { params: Promise<{ id: string }> };
 export default async function AdminEditTeamPage({ params }: Props) {
   const { id } = await params;
   const admin = await requireAdmin();
+  const csrf = await getSessionCsrf();
 
   const [team] = await db.select().from(teams).where(eq(teams.id, id));
   if (!team) notFound();
@@ -35,6 +37,7 @@ export default async function AdminEditTeamPage({ params }: Props) {
     formData: FormData
   ): Promise<{ error?: string; success?: boolean }> {
     "use server";
+    await requireCsrf(formData);
 
     const fields = await extractTeamFields(formData, {
       latitude: team.latitude,
@@ -63,6 +66,7 @@ export default async function AdminEditTeamPage({ params }: Props) {
 
   async function deleteMatch(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
 
     const matchId = formData.get("matchId") as string;
 
@@ -89,6 +93,7 @@ export default async function AdminEditTeamPage({ params }: Props) {
         defaultValues={team}
         submitLabel="Guardar Alterações"
         showRgpd={false}
+        csrfToken={csrf || undefined}
       />
 
       <hr className="my-8" />
@@ -102,7 +107,7 @@ export default async function AdminEditTeamPage({ params }: Props) {
           <h3 className="text-lg font-semibold mb-3">
             Próximos jogos ({upcoming.length})
           </h3>
-          <AdminMatchList matches={upcoming} deleteAction={deleteMatch} />
+          <AdminMatchList matches={upcoming} deleteAction={deleteMatch} csrfToken={csrf} />
         </div>
       )}
 
@@ -111,7 +116,7 @@ export default async function AdminEditTeamPage({ params }: Props) {
           <h3 className="text-lg font-semibold mb-3">
             Jogos anteriores ({past.length})
           </h3>
-          <AdminMatchList matches={past} deleteAction={deleteMatch} />
+          <AdminMatchList matches={past} deleteAction={deleteMatch} csrfToken={csrf} />
         </div>
       )}
 

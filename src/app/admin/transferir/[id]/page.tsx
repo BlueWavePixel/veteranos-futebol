@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { notFound, redirect } from "next/navigation";
 import { logAudit } from "@/lib/audit";
+import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
+import { CsrfField } from "@/components/auth/csrf-field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +18,7 @@ type Props = { params: Promise<{ id: string }> };
 export default async function AdminTransferPage({ params }: Props) {
   const { id } = await params;
   const admin = await requireAdmin();
+  const csrf = await getSessionCsrf();
 
   const [team] = await db
     .select({ id: teams.id, name: teams.name, coordinatorEmail: teams.coordinatorEmail })
@@ -26,6 +29,7 @@ export default async function AdminTransferPage({ params }: Props) {
 
   async function transferTeam(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
 
     const newEmail = (formData.get("newEmail") as string).toLowerCase().trim();
     const newName = (formData.get("newName") as string).trim();
@@ -60,6 +64,7 @@ export default async function AdminTransferPage({ params }: Props) {
             Coordenador atual: {team.coordinatorEmail}
           </p>
           <form action={transferTeam} className="space-y-4">
+            <CsrfField token={csrf} />
             <div>
               <Label htmlFor="newName">Nome do Novo Responsável *</Label>
               <Input id="newName" name="newName" required />

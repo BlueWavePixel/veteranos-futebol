@@ -26,6 +26,7 @@ type Props = {
   isDuplicatesView?: boolean;
   isPendingView?: boolean;
   isSuperAdmin?: boolean;
+  csrfToken?: string | null;
 };
 
 export function AdminTeamTable({
@@ -40,7 +41,11 @@ export function AdminTeamTable({
   isDuplicatesView = false,
   isPendingView = false,
   isSuperAdmin = false,
+  csrfToken,
 }: Props) {
+  const csrfInput = csrfToken ? (
+    <input type="hidden" name="_csrf" value={csrfToken} />
+  ) : null;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmPermanent, setConfirmPermanent] = useState(false);
   const showPermanentDelete = isSuperAdmin && permanentDeleteAction && (isInactiveView || isDuplicatesView);
@@ -79,6 +84,7 @@ export function AdminTeamTable({
             {isPendingView && approveAction && rejectAction ? (
               <>
                 <form action={approveAction}>
+                  {csrfInput}
                   <input
                     type="hidden"
                     name="teamIds"
@@ -89,6 +95,7 @@ export function AdminTeamTable({
                   </Button>
                 </form>
                 <form action={rejectAction}>
+                  {csrfInput}
                   <input
                     type="hidden"
                     name="teamIds"
@@ -101,6 +108,7 @@ export function AdminTeamTable({
               </>
             ) : isInactiveView && reactivateAction ? (
               <form action={reactivateAction}>
+                {csrfInput}
                 <input
                   type="hidden"
                   name="teamIds"
@@ -112,6 +120,7 @@ export function AdminTeamTable({
               </form>
             ) : (
               <form action={bulkDeleteAction}>
+                {csrfInput}
                 <input
                   type="hidden"
                   name="teamIds"
@@ -230,6 +239,7 @@ export function AdminTeamTable({
                 <div className="flex gap-1">
                   {isPendingView && approveAction && (
                     <form action={approveAction}>
+                      {csrfInput}
                       <input type="hidden" name="teamIds" value={team.id} />
                       <Button type="submit" size="sm" className="bg-green-600 hover:bg-green-700">
                         Aprovar
@@ -249,6 +259,7 @@ export function AdminTeamTable({
                     </Link>
                   )}
                   <form action={isPendingView && rejectAction ? rejectAction : deleteAction}>
+                    {csrfInput}
                     <input type="hidden" name={isPendingView ? "teamIds" : "teamId"} value={team.id} />
                     <Button
                       type="submit"

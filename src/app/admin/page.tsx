@@ -6,6 +6,7 @@ import { del } from "@vercel/blob";
 import { logAudit } from "@/lib/audit";
 import { recalculateDuplicateFlags } from "@/lib/recalculate-flags";
 import { createMagicLink, APPROVAL_TOKEN_EXPIRY_MINUTES } from "@/lib/auth/magic-link";
+import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
 import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -24,9 +25,11 @@ export default async function AdminPage({
   searchParams: Promise<{ page?: string; q?: string; inativos?: string; pendentes?: string; ordem?: string }>;
 }) {
   const adminUser = await requireAdmin();
+  const csrf = await getSessionCsrf();
 
   async function deleteTeam(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const teamId = formData.get("teamId") as string;
 
@@ -48,6 +51,7 @@ export default async function AdminPage({
 
   async function bulkDeleteTeams(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
 
@@ -73,6 +77,7 @@ export default async function AdminPage({
 
   async function reactivateTeams(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
 
@@ -98,6 +103,7 @@ export default async function AdminPage({
 
   async function permanentDeleteTeams(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireSuperAdmin();
     const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
 
@@ -141,6 +147,7 @@ export default async function AdminPage({
 
   async function approveTeams(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
 
@@ -184,6 +191,7 @@ export default async function AdminPage({
 
   async function rejectTeams(formData: FormData) {
     "use server";
+    await requireCsrf(formData);
     const adminUser = await requireAdmin();
     const ids = (formData.get("teamIds") as string).split(",").filter(Boolean);
 
@@ -420,6 +428,7 @@ export default async function AdminPage({
             isDuplicatesView={false}
             isPendingView={showPending}
             isSuperAdmin={adminUser.role === "super_admin"}
+            csrfToken={csrf}
           />
 
           {/* Pagination */}
