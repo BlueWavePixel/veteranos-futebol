@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/cleanup-tokens",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/duplicates-check",
+      "schedule": "0 4 * * 1,4"
     }
   ]
 }

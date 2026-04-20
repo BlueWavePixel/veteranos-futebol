@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { db } from "@/lib/db";
-import { admins } from "@/lib/db/schema";
-import { ne } from "drizzle-orm";
+import { admins, teams } from "@/lib/db/schema";
+import { ne, inArray } from "drizzle-orm";
 
 /** Escape HTML special characters to prevent injection in email templates */
 function escHtml(str: string): string {
@@ -291,6 +291,122 @@ export async function notifyOtherAdminsTeamRejected(params: {
     </div>
     `,
   );
+}
+
+const REASON_LABELS: Record<string, string> = {
+  email: "Mesmo email",
+  phone: "Mesmo telefone",
+  phone_normalized: "Telefone equivalente",
+  name_exact: "Mesmo nome",
+  name_fuzzy: "Nome muito parecido",
+  name_equals_coordinator: "Nome igual ao do coordenador",
+};
+
+/**
+ * Notifica admins quando o cron bi-semanal deteta novos pares de duplicados pendentes.
+ * Só é disparado a partir da rota do cron, nunca das server actions do admin
+ * (nestas, o admin já está no painel e não precisa de email).
+ */
+export async function notifyAdminsNewDuplicates(params: {
+  newlyDetected: Array<{ teamAId: string; teamBId: string; reason: string }>;
+  totalPending: number;
+}) {
+  try {
+    if (params.newlyDetected.length === 0) return;
+
+    const allAdmins = await db.select({ email: admins.email }).from(admins);
+    const adminEmails = allAdmins.map((a) => a.email);
+    if (adminEmails.length === 0) return;
+
+    const teamIds = new Set<string>();
+    for (const pair of params.newlyDetected) {
+      teamIds.add(pair.teamAId);
+      teamIds.add(pair.teamBId);
+    }
+
+    const teamRows = await db
+      .select({ id: teams.id, name: teams.name })
+      .from(teams)
+      .where(inArray(teams.id, Array.from(teamIds)));
+    const nameById = new Map(teamRows.map((t) => [t.id, t.name]));
+
+    const PREVIEW_LIMIT = 10;
+    const previewPairs = params.newlyDetected.slice(0, PREVIEW_LIMIT);
+    const rowsHtml = previewPairs
+      .map((pair) => {
+        const nameA = nameById.get(pair.teamAId) ?? "(equipa removida)";
+        const nameB =
+          pair.teamAId === pair.teamBId
+            ? "(auto-verificação)"
+            : (nameById.get(pair.teamBId) ?? "(equipa removida)");
+        const reasonLabel = REASON_LABELS[pair.reason] ?? pair.reason;
+        return `
+          <tr>
+            <td style="padding:8px; border-bottom:1px solid #e5e7eb;">${escHtml(nameA)}</td>
+            <td style="padding:8px; border-bottom:1px solid #e5e7eb;">${escHtml(nameB)}</td>
+            <td style="padding:8px; border-bottom:1px solid #e5e7eb; color:#666; font-size:13px;">${escHtml(reasonLabel)}</td>
+          </tr>`;
+      })
+      .join("");
+
+    const extraCount = params.newlyDetected.length - previewPairs.length;
+    const moreLine =
+      extraCount > 0
+        ? `<p style="color:#666; font-size:13px; margin-top:8px;">E mais ${extraCount} ${extraCount === 1 ? "par" : "pares"}. Ver todos no painel.</p>`
+        : "";
+
+    const appUrl = (
+      process.env.NEXT_PUBLIC_APP_URL || "https://veteranos-futebol.vercel.app"
+    ).trim();
+    const adminUrl = `${appUrl}/admin/duplicados`;
+
+    const newCount = params.newlyDetected.length;
+    await getTransporter().sendMail({
+      from: `"Veteranos - Clubes de Futebol" <${process.env.GMAIL_USER}>`,
+      to: adminEmails.join(", "),
+      subject:
+        newCount === 1
+          ? "Novo possível duplicado detetado"
+          : `${newCount} novos possíveis duplicados detetados`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 640px; margin: 0 auto;">
+          <h2 style="color: #16a34a;">Verificação automática de duplicados</h2>
+          <p>
+            A rotina agendada detetou
+            <strong>${newCount} ${newCount === 1 ? "novo par" : "novos pares"}</strong>
+            de possíveis duplicados desde a última verificação.
+          </p>
+          <p style="color:#666; font-size:14px;">
+            Total de pares pendentes no painel: <strong>${params.totalPending}</strong>.
+          </p>
+          <table style="border-collapse: collapse; width: 100%; margin: 16px 0; font-size:14px;">
+            <thead>
+              <tr style="background:#f4f4f5;">
+                <th style="padding:8px; text-align:left;">Equipa A</th>
+                <th style="padding:8px; text-align:left;">Equipa B</th>
+                <th style="padding:8px; text-align:left;">Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          ${moreLine}
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${adminUrl}" style="display:inline-block; padding:12px 24px; background-color:#16a34a; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">
+              Rever duplicados
+            </a>
+          </div>
+          <p style="color:#888; font-size:12px;">
+            Este email é enviado automaticamente pela rotina de verificação (segundas e quintas).
+            Só chega ao inbox quando há pares novos a tratar.
+          </p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Failed to notify admins of new duplicates:", error);
+  }
 }
 
 /** Notifica outros admins que uma sugestão foi tratada por [admin]. */

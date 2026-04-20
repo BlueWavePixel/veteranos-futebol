@@ -8,12 +8,41 @@ import {
 } from "@/lib/duplicates/detect";
 import type { NewDuplicatePair } from "@/lib/db/schema";
 
+export type NewlyDetectedPair = {
+  teamAId: string;
+  teamBId: string;
+  reason: string;
+};
+
+export type RecalculateResult = {
+  totalPending: number;
+  newlyDetected: NewlyDetectedPair[];
+};
+
 /**
  * Recalcula os pares de duplicados usando a tabela duplicate_pairs.
  * Mantém pares já resolvidos (not_duplicate, confirmed_duplicate, merged).
  * Recria apenas os pending.
+ *
+ * Devolve o delta: quantos pending ficam no total e quais são pares realmente
+ * novos (não existiam antes desta chamada). O cron usa o delta para decidir
+ * se vale a pena notificar os admins.
  */
-export async function recalculateDuplicateFlags() {
+export async function recalculateDuplicateFlags(): Promise<RecalculateResult> {
+  const previousPending = await db
+    .select({
+      teamAId: duplicatePairs.teamAId,
+      teamBId: duplicatePairs.teamBId,
+    })
+    .from(duplicatePairs)
+    .where(eq(duplicatePairs.status, "pending"));
+
+  const previousPendingKeys = new Set<string>();
+  for (const pair of previousPending) {
+    previousPendingKeys.add(`${pair.teamAId}::${pair.teamBId}`);
+    previousPendingKeys.add(`${pair.teamBId}::${pair.teamAId}`);
+  }
+
   // 1. Delete all pending pairs (keep resolved ones)
   await db
     .delete(duplicatePairs)
@@ -186,4 +215,20 @@ export async function recalculateDuplicateFlags() {
       await db.insert(duplicatePairs).values(batch).onConflictDoNothing();
     }
   }
+
+  const newlyDetected: NewlyDetectedPair[] = [];
+  for (const pair of newPairs) {
+    if (!previousPendingKeys.has(`${pair.teamAId}::${pair.teamBId}`)) {
+      newlyDetected.push({
+        teamAId: pair.teamAId,
+        teamBId: pair.teamBId,
+        reason: pair.reason ?? "",
+      });
+    }
+  }
+
+  return {
+    totalPending: newPairs.length,
+    newlyDetected,
+  };
 }
