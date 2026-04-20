@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { db } from "@/lib/db";
 import { admins } from "@/lib/db/schema";
+import { ne } from "drizzle-orm";
 
 /** Escape HTML special characters to prevent injection in email templates */
 function escHtml(str: string): string {
@@ -197,4 +198,149 @@ export async function notifyCoordinatorReply(params: {
   } catch (error) {
     console.error("Failed to notify coordinator:", error);
   }
+}
+
+/**
+ * Helper: envia email a todos os admins EXCETO o que executou a ação.
+ * Usado em audit trails (aprovação/rejeição/resposta) para evitar trabalho duplicado.
+ */
+async function notifyOtherAdmins(
+  actorEmail: string,
+  subject: string,
+  html: string,
+): Promise<void> {
+  try {
+    const others = await db
+      .select({ email: admins.email })
+      .from(admins)
+      .where(ne(admins.email, actorEmail));
+    const emails = others.map((a) => a.email);
+    if (emails.length === 0) return;
+
+    await getTransporter().sendMail({
+      from: `"Veteranos - Clubes de Futebol" <${process.env.GMAIL_USER}>`,
+      to: emails.join(", "),
+      subject,
+      html,
+    });
+  } catch (error) {
+    console.error("Failed to notify other admins:", error);
+  }
+}
+
+/** Notifica outros admins que uma equipa foi aprovada por [admin]. */
+export async function notifyOtherAdminsTeamApproved(params: {
+  actorEmail: string;
+  actorName: string;
+  actorRole: string;
+  teamName: string;
+  coordinatorEmail: string;
+}) {
+  const roleLabel = params.actorRole === "super_admin" ? "Super Admin" : "Moderador";
+  await notifyOtherAdmins(
+    params.actorEmail,
+    `Equipa aprovada: ${params.teamName}`,
+    `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <h2 style="color: #16a34a;">&#10004; Equipa aprovada</h2>
+      <p>Apenas para informação — já não precisa de ir ao painel aprovar esta equipa.</p>
+      <table style="border-collapse: collapse; width: 100%; margin: 16px 0;">
+        <tr>
+          <td style="padding: 8px; font-weight: bold; color: #666;">Equipa:</td>
+          <td style="padding: 8px;">${escHtml(params.teamName)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; color: #666;">Coordenador:</td>
+          <td style="padding: 8px;">${escHtml(params.coordinatorEmail)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; color: #666;">Aprovada por:</td>
+          <td style="padding: 8px;">${escHtml(params.actorName)} (${roleLabel})</td>
+        </tr>
+      </table>
+      <p style="color: #888; font-size: 13px;">O coordenador já recebeu o link de acesso à plataforma.</p>
+    </div>
+    `,
+  );
+}
+
+/** Notifica outros admins que uma equipa foi rejeitada por [admin]. */
+export async function notifyOtherAdminsTeamRejected(params: {
+  actorEmail: string;
+  actorName: string;
+  actorRole: string;
+  teamNames: string[];
+}) {
+  const roleLabel = params.actorRole === "super_admin" ? "Super Admin" : "Moderador";
+  const count = params.teamNames.length;
+  const listHtml = params.teamNames.map((n) => `<li>${escHtml(n)}</li>`).join("");
+  await notifyOtherAdmins(
+    params.actorEmail,
+    count === 1
+      ? `Equipa rejeitada: ${params.teamNames[0]}`
+      : `${count} equipas rejeitadas`,
+    `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <h2 style="color: #dc2626;">&#10006; ${count === 1 ? "Equipa rejeitada" : `${count} equipas rejeitadas`}</h2>
+      <p>Apenas para informação — já não precisa de ir ao painel tratar ${count === 1 ? "desta equipa" : "destas equipas"}.</p>
+      <ul style="padding-left: 20px;">${listHtml}</ul>
+      <p style="padding: 8px 0;">
+        <strong>Rejeitada${count === 1 ? "" : "s"} por:</strong>
+        ${escHtml(params.actorName)} (${roleLabel})
+      </p>
+    </div>
+    `,
+  );
+}
+
+/** Notifica outros admins que uma sugestão foi tratada por [admin]. */
+export async function notifyOtherAdminsSuggestionHandled(params: {
+  actorEmail: string;
+  actorName: string;
+  actorRole: string;
+  suggestionSubject: string;
+  suggestionAuthor: string;
+  newStatus: string;
+  hasReply: boolean;
+}) {
+  const roleLabel = params.actorRole === "super_admin" ? "Super Admin" : "Moderador";
+  const STATUS_LABELS: Record<string, string> = {
+    pending: "Pendente",
+    read: "Lida",
+    resolved: "Resolvida",
+  };
+  const statusLabel = STATUS_LABELS[params.newStatus] || params.newStatus;
+  await notifyOtherAdmins(
+    params.actorEmail,
+    `Sugestão tratada: ${params.suggestionSubject}`,
+    `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <h2 style="color: #16a34a;">&#10004; Sugestão tratada</h2>
+      <p>Apenas para informação — já não precisa de ir ao painel responder a esta sugestão.</p>
+      <table style="border-collapse: collapse; width: 100%; margin: 16px 0;">
+        <tr>
+          <td style="padding: 8px; font-weight: bold; color: #666;">Assunto:</td>
+          <td style="padding: 8px;">${escHtml(params.suggestionSubject)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; color: #666;">De:</td>
+          <td style="padding: 8px;">${escHtml(params.suggestionAuthor)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; color: #666;">Novo estado:</td>
+          <td style="padding: 8px;">${statusLabel}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; color: #666;">Tratada por:</td>
+          <td style="padding: 8px;">${escHtml(params.actorName)} (${roleLabel})</td>
+        </tr>
+        ${
+          params.hasReply
+            ? `<tr><td style="padding: 8px; font-weight: bold; color: #666;">Resposta:</td><td style="padding: 8px; color: #16a34a;">Enviada ao coordenador</td></tr>`
+            : ""
+        }
+      </table>
+    </div>
+    `,
+  );
 }

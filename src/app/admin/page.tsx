@@ -8,6 +8,10 @@ import { recalculateDuplicateFlags } from "@/lib/recalculate-flags";
 import { createMagicLink, APPROVAL_TOKEN_EXPIRY_MINUTES } from "@/lib/auth/magic-link";
 import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
 import { sendTeamApprovedEmail } from "@/lib/email/send-magic-link";
+import {
+  notifyOtherAdminsTeamApproved,
+  notifyOtherAdminsTeamRejected,
+} from "@/lib/email/send-notification";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -177,6 +181,15 @@ export default async function AdminPage({
           const expiryDays = Math.round(APPROVAL_TOKEN_EXPIRY_MINUTES / (60 * 24));
           await sendTeamApprovedEmail(team.email, magicLink, team.name, expiryDays);
         }
+
+        // Audit trail: notify OTHER admins (not the one who approved)
+        await notifyOtherAdminsTeamApproved({
+          actorEmail: adminUser.email,
+          actorName: adminUser.name,
+          actorRole: adminUser.role,
+          teamName: team.name,
+          coordinatorEmail: team.email,
+        });
       }
 
       await logAudit({
@@ -198,6 +211,12 @@ export default async function AdminPage({
 
     if (ids.length === 0) return;
 
+    // Fetch team names BEFORE inativating (for notification)
+    const rejectedTeams = await db
+      .select({ name: teams.name })
+      .from(teams)
+      .where(inArray(teams.id, ids));
+
     await db
       .update(teams)
       .set({ isActive: false, updatedAt: new Date() })
@@ -209,6 +228,16 @@ export default async function AdminPage({
         actorEmail: adminUser.email,
         action: "team_rejected",
         teamId,
+      });
+    }
+
+    // Audit trail: notify OTHER admins
+    if (rejectedTeams.length > 0) {
+      await notifyOtherAdminsTeamRejected({
+        actorEmail: adminUser.email,
+        actorName: adminUser.name,
+        actorRole: adminUser.role,
+        teamNames: rejectedTeams.map((t) => t.name),
       });
     }
 

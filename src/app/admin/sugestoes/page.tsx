@@ -3,7 +3,7 @@ import { suggestions, teams } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { notifyCoordinatorReply } from "@/lib/email/send-notification";
+import { notifyCoordinatorReply, notifyOtherAdminsSuggestionHandled } from "@/lib/email/send-notification";
 import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
 import { CsrfField } from "@/components/auth/csrf-field";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,6 +73,19 @@ export default async function AdminSugestoesPage() {
         originalMessage: suggestion.message,
         adminReply,
         status,
+      });
+    }
+
+    // Audit trail: notify OTHER admins that someone handled this suggestion
+    if (suggestion) {
+      await notifyOtherAdminsSuggestionHandled({
+        actorEmail: adminUser.email,
+        actorName: adminUser.name,
+        actorRole: adminUser.role,
+        suggestionSubject: suggestion.subject,
+        suggestionAuthor: suggestion.authorName,
+        newStatus: status,
+        hasReply: !!adminReply,
       });
     }
 
