@@ -73,6 +73,80 @@ export async function notifyAdminsSuggestion(params: {
   }
 }
 
+/** Notifica admins/moderadores quando uma nova equipa fica pendente de aprovação. */
+export async function notifyAdminsNewTeamPending(params: {
+  teamName: string;
+  coordinatorName: string;
+  coordinatorEmail: string;
+  coordinatorPhone?: string | null;
+  location?: string | null;
+  suspiciousFlags?: string[];
+}) {
+  try {
+    const allAdmins = await db.select({ email: admins.email }).from(admins);
+    const adminEmails = allAdmins.map((a) => a.email);
+    if (adminEmails.length === 0) return;
+
+    const appUrl =
+      (process.env.NEXT_PUBLIC_APP_URL || "https://veteranos-futebol.vercel.app").trim();
+    const adminUrl = `${appUrl}/admin?pendentes=1`;
+
+    const suspiciousBadge =
+      params.suspiciousFlags && params.suspiciousFlags.length > 0
+        ? `<p style="background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:12px;border-radius:8px;font-size:14px;">
+             &#9888; <strong>Registo com sinais suspeitos:</strong> ${params.suspiciousFlags.map(escHtml).join(", ")}. Rever com atenção antes de aprovar.
+           </p>`
+        : "";
+
+    await getTransporter().sendMail({
+      from: `"Veteranos - Clubes de Futebol" <${process.env.GMAIL_USER}>`,
+      to: adminEmails.join(", "),
+      subject: `Nova equipa pendente: ${params.teamName}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #16a34a;">Nova equipa pendente de aprovação</h2>
+          <p>Uma nova equipa foi registada e aguarda aprovação:</p>
+          ${suspiciousBadge}
+          <table style="border-collapse: collapse; width: 100%; margin: 16px 0;">
+            <tr>
+              <td style="padding: 8px; font-weight: bold; color: #666;">Equipa:</td>
+              <td style="padding: 8px;">${escHtml(params.teamName)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; font-weight: bold; color: #666;">Coordenador:</td>
+              <td style="padding: 8px;">${escHtml(params.coordinatorName)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; font-weight: bold; color: #666;">Email:</td>
+              <td style="padding: 8px;">${escHtml(params.coordinatorEmail)}</td>
+            </tr>
+            ${
+              params.coordinatorPhone
+                ? `<tr><td style="padding: 8px; font-weight: bold; color: #666;">Telefone:</td><td style="padding: 8px;">${escHtml(params.coordinatorPhone)}</td></tr>`
+                : ""
+            }
+            ${
+              params.location
+                ? `<tr><td style="padding: 8px; font-weight: bold; color: #666;">Localização:</td><td style="padding: 8px;">${escHtml(params.location)}</td></tr>`
+                : ""
+            }
+          </table>
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${adminUrl}" style="display:inline-block; padding:12px 24px; background-color:#16a34a; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">
+              Ver equipas pendentes
+            </a>
+          </div>
+          <p style="color: #666; font-size: 12px;">
+            Ao aprovar, um magic link de acesso é enviado automaticamente ao coordenador.
+          </p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Failed to notify admins of new team:", error);
+  }
+}
+
 const STATUS_PT: Record<string, string> = {
   pending: "Pendente",
   read: "Lida",

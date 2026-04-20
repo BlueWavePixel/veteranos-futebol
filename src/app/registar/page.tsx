@@ -11,6 +11,7 @@ import { t } from "@/lib/i18n/translations";
 import { headers } from "next/headers";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { logSecurityEvent } from "@/lib/security/audit";
+import { notifyAdminsNewTeamPending } from "@/lib/email/send-notification";
 async function registerTeam(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
@@ -133,6 +134,20 @@ async function registerTeam(
     rgpdConsent: true,
     rgpdConsentAt: new Date(),
     isApproved: false,
+  });
+
+  // Notificar admins/moderadores (fire-and-forget, não bloqueia o registo)
+  const suspiciousFlags: string[] = [];
+  if (nameIsSuspicious) suspiciousFlags.push("nome suspeito");
+  if (emailIsSuspicious) suspiciousFlags.push("email temporário");
+
+  await notifyAdminsNewTeamPending({
+    teamName: fields.name,
+    coordinatorName: fields.coordinatorName,
+    coordinatorEmail,
+    coordinatorPhone: fields.coordinatorPhone,
+    location: fields.location || null,
+    suspiciousFlags,
   });
 
   redirect("/registar/sucesso");
