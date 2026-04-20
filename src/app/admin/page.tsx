@@ -7,7 +7,7 @@ import { logAudit } from "@/lib/audit";
 import { recalculateDuplicateFlags } from "@/lib/recalculate-flags";
 import { createMagicLink, APPROVAL_TOKEN_EXPIRY_MINUTES } from "@/lib/auth/magic-link";
 import { getSessionCsrf, requireCsrf } from "@/lib/security/csrf";
-import { sendMagicLinkEmail } from "@/lib/email/send-magic-link";
+import { sendTeamApprovedEmail } from "@/lib/email/send-magic-link";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -166,7 +166,7 @@ export default async function AdminPage({
     // Send magic link to each approved team's coordinator
     for (const teamId of ids) {
       const [team] = await db
-        .select({ email: teams.coordinatorEmail })
+        .select({ email: teams.coordinatorEmail, name: teams.name })
         .from(teams)
         .where(eq(teams.id, teamId));
 
@@ -174,7 +174,8 @@ export default async function AdminPage({
         // Approval emails get 7-day expiry — coordinator may not check email immediately
         const magicLink = await createMagicLink(team.email, APPROVAL_TOKEN_EXPIRY_MINUTES);
         if (magicLink) {
-          await sendMagicLinkEmail(team.email, magicLink, "pt", APPROVAL_TOKEN_EXPIRY_MINUTES);
+          const expiryDays = Math.round(APPROVAL_TOKEN_EXPIRY_MINUTES / (60 * 24));
+          await sendTeamApprovedEmail(team.email, magicLink, team.name, expiryDays);
         }
       }
 
