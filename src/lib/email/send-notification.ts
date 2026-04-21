@@ -398,8 +398,8 @@ export async function notifyAdminsNewDuplicates(params: {
             </a>
           </div>
           <p style="color:#888; font-size:12px;">
-            Este email é enviado automaticamente pela rotina de verificação (segundas e quintas).
-            Só chega ao inbox quando há pares novos a tratar.
+            Este email é enviado automaticamente pela rotina diária de verificação.
+            Só chega ao inbox quando há pares novos a tratar face ao dia anterior.
           </p>
         </div>
       `,

@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/duplicates-check",
-      "schedule": "0 4 * * 1,4"
+      "schedule": "0 4 * * *"
     }
   ]
 }
