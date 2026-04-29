@@ -118,6 +118,7 @@ export default async function DashboardPage() {
                         alt={team.name}
                         width={48}
                         height={48}
+                        unoptimized
                         className="w-12 h-12 rounded-lg object-contain bg-muted"
                       />
                     ) : (

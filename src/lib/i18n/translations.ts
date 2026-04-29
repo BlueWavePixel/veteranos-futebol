@@ -1571,11 +1571,17 @@ const translations = {
       es: "Elegir imagen",
       en: "Choose image",
     },
-    hint: {
-      pt: "JPG, PNG, WebP, GIF ou SVG (máx. 5MB).",
-      br: "JPG, PNG, WebP, GIF ou SVG (máx. 5MB).",
-      es: "JPG, PNG, WebP, GIF o SVG (máx. 5MB).",
-      en: "JPG, PNG, WebP, GIF or SVG (max. 5MB).",
+    hintLogo: {
+      pt: "JPG, PNG, WebP ou GIF (máx. 500KB). Para o logótipo da equipa.",
+      br: "JPG, PNG, WebP ou GIF (máx. 500KB). Para o logotipo da equipa.",
+      es: "JPG, PNG, WebP o GIF (máx. 500KB). Para el logotipo del equipo.",
+      en: "JPG, PNG, WebP or GIF (max. 500KB). For the team logo.",
+    },
+    hintPhoto: {
+      pt: "JPG, PNG, WebP ou GIF (máx. 2MB). Para a foto da equipa.",
+      br: "JPG, PNG, WebP ou GIF (máx. 2MB). Para a foto da equipa.",
+      es: "JPG, PNG, WebP o GIF (máx. 2MB). Para la foto del equipo.",
+      en: "JPG, PNG, WebP or GIF (max. 2MB). For the team photo.",
     },
     error: {
       pt: "Erro ao enviar imagem",

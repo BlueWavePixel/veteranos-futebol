@@ -88,6 +88,7 @@ export default async function TeamPage({ params }: Props) {
             alt={team.name}
             width={96}
             height={96}
+            unoptimized
             className="w-24 h-24 rounded-lg object-contain bg-muted"
           />
         ) : (
@@ -164,6 +165,7 @@ export default async function TeamPage({ params }: Props) {
             alt={team.name}
             fill
             sizes="(max-width: 896px) 100vw, 896px"
+            unoptimized
             className="object-cover rounded-lg"
           />
         </div>

@@ -3,7 +3,8 @@ import { put } from "@vercel/blob";
 import { getCoordinatorEmail } from "@/lib/auth/session";
 import { checkRateLimit } from "@/lib/security/rate-limiter";
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB max
+const MAX_LOGO_SIZE = 500 * 1024; // 500KB
+const MAX_PHOTO_SIZE = 2 * 1024 * 1024; // 2MB
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const type = formData.get("type") as string;
+    const rawType = formData.get("type") as string;
+    const type: "logo" | "photo" = rawType === "photo" ? "photo" : "logo";
 
     if (!file) {
       return NextResponse.json(
@@ -36,9 +38,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (file.size > MAX_SIZE) {
+    const maxSize = type === "logo" ? MAX_LOGO_SIZE : MAX_PHOTO_SIZE;
+    if (file.size > maxSize) {
+      const maxLabel = type === "logo" ? "500KB" : "2MB";
       return NextResponse.json(
-        { error: "Ficheiro demasiado grande (máximo 5MB)" },
+        { error: `Ficheiro demasiado grande (máximo ${maxLabel} para ${type === "logo" ? "logótipos" : "fotos da equipa"})` },
         { status: 400 }
       );
     }
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest) {
       "image/gif": "gif",
     };
     const ext = extMap[file.type] || "jpg";
-    const filename = `${type || "image"}-${Date.now()}.${ext}`;
+    const filename = `${type}-${Date.now()}.${ext}`;
 
     // Upload to Vercel Blob (public store)
     const blob = await put(filename, file, {

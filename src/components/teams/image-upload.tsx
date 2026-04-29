@@ -96,14 +96,14 @@ export function ImageUpload({
                 : t("imageUpload", "choose", locale)}
           </Button>
           <p className="text-xs text-muted-foreground">
-            {t("imageUpload", "hint", locale)}
+            {t("imageUpload", type === "logo" ? "hintLogo" : "hintPhoto", locale)}
           </p>
         </div>
       </div>
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         onChange={handleFileChange}
         className="hidden"
       />
